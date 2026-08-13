@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { Building2, CalendarCheck, ConciergeBell } from "lucide-react";
 
 import { BrandLogo } from "../components/common/BrandLogo.jsx";
@@ -27,9 +28,9 @@ export function Login() {
             <span />
           </div>
           <ul className="staff-areas" aria-label="Staff workspace areas">
-            {staffAreas.map(({ icon: Icon, label }) => (
+            {staffAreas.map(({ icon, label }) => (
               <li key={label}>
-                <Icon aria-hidden="true" size={17} />
+                {createElement(icon, { "aria-hidden": "true", size: 17 })}
                 <span>{label}</span>
               </li>
             ))}

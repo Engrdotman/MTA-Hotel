@@ -19,11 +19,12 @@ export function DashboardLayout() {
 
   return (
     <div className="app-shell">
-      <Sidebar onLogout={handleLogout} />
+      <Sidebar onLogout={handleLogout} user={user} />
       <MobileSidebar
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         onLogout={handleLogout}
+        user={user}
       />
       <div className="app-main">
         <Topbar

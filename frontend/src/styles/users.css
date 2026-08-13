@@ -1,0 +1,59 @@
+.users-page {
+  gap: var(--space-5);
+}
+
+.user-table {
+  min-width: 980px;
+}
+
+.user-role-badge,
+.user-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.user-role-manager,
+.user-role-receptionist,
+.user-role-accountant,
+.user-role-staff {
+  color: var(--color-primary);
+  background: var(--color-lavender);
+}
+
+.user-status-active {
+  color: var(--color-success);
+  background: rgba(46, 125, 50, 0.1);
+}
+
+.user-status-inactive {
+  color: var(--color-danger);
+  background: rgba(198, 40, 40, 0.1);
+}
+
+.user-form {
+  max-width: 720px;
+}
+
+.user-details-modal {
+  max-width: 560px;
+}
+
+.unauthorized-card {
+  max-width: 560px;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.unauthorized-card h2 {
+  color: var(--color-charcoal);
+  font-size: 2rem;
+}
+
+.unauthorized-card p {
+  color: var(--color-muted);
+}

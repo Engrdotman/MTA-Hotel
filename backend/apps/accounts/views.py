@@ -2,12 +2,16 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.audit.models import AuditLog
 
+from .models import User
+from .permissions import IsAdmin
 from .serializers import LoginSerializer, LogoutSerializer
+from .serializers import StaffUserCreateSerializer, StaffUserSerializer, StaffUserUpdateSerializer
 from .services import (
     authenticate_user,
     blacklist_refresh_token,
@@ -62,3 +66,21 @@ class MeView(APIView):
 
 class RefreshTokenView(TokenRefreshView):
     permission_classes = [AllowAny]
+
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.select_related("role").order_by("email")
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return StaffUserCreateSerializer
+        if self.action in ("partial_update", "update"):
+            return StaffUserUpdateSerializer
+        return StaffUserSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.is_active = False
+        user.save(update_fields=["is_active", "updated_at"])
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 
 import { Sidebar } from "./Sidebar.jsx";
 
-export function MobileSidebar({ isOpen, onClose, onLogout }) {
+export function MobileSidebar({ isOpen, onClose, onLogout, user }) {
   return (
     <div className={`mobile-sidebar ${isOpen ? "mobile-sidebar-open" : ""}`}>
       <button
@@ -15,7 +15,7 @@ export function MobileSidebar({ isOpen, onClose, onLogout }) {
         <button aria-label="Close menu" className="mobile-sidebar-close" onClick={onClose} type="button">
           <X aria-hidden="true" size={20} />
         </button>
-        <Sidebar onLogout={onLogout} onNavigate={onClose} />
+        <Sidebar onLogout={onLogout} onNavigate={onClose} user={user} />
       </div>
     </div>
   );

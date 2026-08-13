@@ -7,6 +7,15 @@ from apps.core.models import TimeStampedModel
 
 
 class Role(TimeStampedModel):
+    ADMIN = "ADMIN"
+    MANAGER = "MANAGER"
+    RECEPTIONIST = "RECEPTIONIST"
+    ACCOUNTANT = "ACCOUNTANT"
+    STAFF = "STAFF"
+
+    MVP_ROLES = [ADMIN, MANAGER, RECEPTIONIST, ACCOUNTANT, STAFF]
+    STAFF_CREATION_ROLES = [MANAGER, RECEPTIONIST, ACCOUNTANT, STAFF]
+
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True)
 

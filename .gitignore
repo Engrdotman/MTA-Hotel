@@ -6,6 +6,7 @@ venv/
 *.sqlite3
 .coverage
 htmlcov/
+logs/
 
 # Django
 staticfiles/
@@ -26,4 +27,3 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
-

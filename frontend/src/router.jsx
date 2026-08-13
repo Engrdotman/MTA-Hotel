@@ -2,8 +2,14 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import { DashboardLayout } from "./layouts/DashboardLayout.jsx";
 import { Dashboard } from "./pages/Dashboard.jsx";
+import { Guests } from "./pages/Guests.jsx";
 import { Login } from "./pages/Login.jsx";
 import { PlaceholderPage } from "./pages/PlaceholderPage.jsx";
+import { Reservations } from "./pages/Reservations.jsx";
+import { Rooms } from "./pages/Rooms.jsx";
+import { Unauthorized } from "./pages/Unauthorized.jsx";
+import { Users } from "./pages/Users.jsx";
+import { ROLES } from "./features/auth/authorization.js";
 import { ProtectedRoute, PublicRoute } from "./features/auth/ProtectedRoute.jsx";
 
 export const router = createBrowserRouter([
@@ -32,15 +38,27 @@ export const router = createBrowserRouter([
       },
       {
         path: "/guests",
-        element: <PlaceholderPage title="Guests" />,
+        element: <Guests />,
       },
       {
         path: "/rooms",
-        element: <PlaceholderPage title="Rooms" />,
+        element: <Rooms />,
       },
       {
         path: "/reservations",
-        element: <PlaceholderPage title="Reservations" />,
+        element: <Reservations />,
+      },
+      {
+        path: "/users",
+        element: (
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+            <Users />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/unauthorized",
+        element: <Unauthorized />,
       },
       {
         path: "/check-in",
