@@ -1,5 +1,5 @@
 import { CalendarDays, CheckCircle2, ClipboardList, Eye, Pencil, Plus, Search, Trash2, X } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useReservations } from "../features/reservations/hooks/useReservations.js";
 import {
@@ -45,10 +45,13 @@ export function Reservations() {
   } = useReservations({ filters, page, pageSize, search });
 
   const guestOptions = useMemo(
-    () => guests.map((guest) => ({ label: `${guest.first_name} ${guest.last_name} (${guest.guest_code})`, value: guest.id })),
+    () => guests.map((guest) => ({ label: `${guest.first_name} ${guest.last_name} (${guest.guest_code})`, value: String(guest.id) })),
     [guests],
   );
-  const roomOptions = useMemo(() => rooms.map((room) => ({ label: `${room.room_number} - ${room.room_type_name}`, value: room.id })), [rooms]);
+  const roomOptions = useMemo(
+    () => rooms.map((room) => ({ label: `${room.room_number} - ${room.room_type_name}`, value: String(room.id) })),
+    [rooms],
+  );
 
   const handleSearch = useCallback((event) => {
     setSearch(event.target.value);
@@ -174,6 +177,17 @@ export function Reservations() {
                 {roomOptions.map((room) => (
                   <option key={room.value} value={room.value}>
                     {room.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Guest
+              <select onChange={(event) => updateFilter("guest", event.target.value)} value={filters.guest}>
+                <option value="">All</option>
+                {guestOptions.map((guest) => (
+                  <option key={guest.value} value={guest.value}>
+                    {guest.label}
                   </option>
                 ))}
               </select>
@@ -321,23 +335,25 @@ function ReservationTable({ isFiltered, onDelete, onEdit, onStatusChange, onView
 }
 
 function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit, reservation, roomOptions }) {
-  const [values, setValues] = useState({
-    guest: reservation?.guest || "",
-    room: reservation?.room || "",
-    check_in_date: reservation?.check_in_date || "",
-    check_out_date: reservation?.check_out_date || "",
-    adults: reservation?.adults || 1,
-    children: reservation?.children || 0,
-    status: reservation?.status || "PENDING",
-    source: reservation?.source || "WALK_IN",
-    special_requests: reservation?.special_requests || "",
-    notes: reservation?.notes || "",
-  });
+  const [values, setValues] = useState(() => getReservationFormValues(reservation));
   const errors = mapValidationErrors(error);
   const message = error ? getApiErrorMessage(error) : "";
 
+  useEffect(() => {
+    setValues(getReservationFormValues(reservation));
+  }, [reservation]);
+
   function updateValue(name, value) {
-    setValues((current) => ({ ...current, [name]: value }));
+    setValues((current) => {
+      if (name === "guest") {
+        return {
+          ...current,
+          guest: value,
+          additional_guest_ids: current.additional_guest_ids.filter((guestId) => guestId !== value),
+        };
+      }
+      return { ...current, [name]: value };
+    });
   }
 
   function submit(event) {
@@ -348,6 +364,7 @@ function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit,
       room: Number(values.room),
       adults: Number(values.adults),
       children: Number(values.children),
+      additional_guest_ids: values.additional_guest_ids.map(Number),
     });
   }
 
@@ -400,6 +417,26 @@ function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit,
           <Field error={errors.children} label="Children">
             <input min="0" onChange={(event) => updateValue("children", event.target.value)} type="number" value={values.children} />
           </Field>
+          <Field error={errors.additional_guest_ids} label="Additional Guests">
+            <select
+              multiple
+              onChange={(event) =>
+                updateValue(
+                  "additional_guest_ids",
+                  Array.from(event.target.selectedOptions, (option) => option.value),
+                )
+              }
+              value={values.additional_guest_ids}
+            >
+              {guestOptions
+                .filter((guest) => guest.value !== String(values.guest))
+                .map((guest) => (
+                  <option key={guest.value} value={guest.value}>
+                    {guest.label}
+                  </option>
+                ))}
+            </select>
+          </Field>
           <Field error={errors.status} label="Status">
             <select onChange={(event) => updateValue("status", event.target.value)} value={values.status}>
               {reservationStatusOptions.map((status) => (
@@ -439,6 +476,22 @@ function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit,
   );
 }
 
+function getReservationFormValues(reservation) {
+  return {
+    guest: reservation?.guest ? String(reservation.guest) : "",
+    room: reservation?.room ? String(reservation.room) : "",
+    check_in_date: reservation?.check_in_date || "",
+    check_out_date: reservation?.check_out_date || "",
+    adults: reservation?.adults || 1,
+    children: reservation?.children || 0,
+    status: reservation?.status || "PENDING",
+    source: reservation?.source || "WALK_IN",
+    additional_guest_ids: reservation?.additional_guests?.map((guest) => String(guest.id)) || [],
+    special_requests: reservation?.special_requests || "",
+    notes: reservation?.notes || "",
+  };
+}
+
 function Field({ children, className = "", error, label }) {
   return (
     <label className={`reservation-field ${className}`}>
@@ -474,6 +527,14 @@ function ReservationDetails({ onClose, reservation }) {
           <Detail label="Occupancy" value={`${reservation.adults} adult(s), ${reservation.children} child(ren)`} />
           <Detail label="Status" value={reservation.status_display} />
           <Detail label="Source" value={reservation.source_display} />
+          <Detail
+            label="Additional Guests"
+            value={
+              reservation.additional_guests?.length
+                ? reservation.additional_guests.map((guest) => guest.full_name || `${guest.first_name} ${guest.last_name}`).join(", ")
+                : "-"
+            }
+          />
           <Detail label="Special Requests" value={reservation.special_requests || "-"} />
           <Detail label="Notes" value={reservation.notes || "-"} />
         </dl>

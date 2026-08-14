@@ -5,6 +5,7 @@ from django.db.models import Q
 from apps.core.models import TimeStampedModel
 from apps.guests.models import Guest
 from apps.reservations.models import Reservation
+from apps.stays.models import Stay
 
 
 class Invoice(TimeStampedModel):
@@ -14,14 +15,14 @@ class Invoice(TimeStampedModel):
         PARTIALLY_PAID = "PARTIALLY_PAID", "Partially paid"
         PAID = "PAID", "Paid"
         VOID = "VOID", "Void"
-        CANCELLED = "CANCELLED", "Cancelled"
 
     invoice_number = models.CharField(max_length=40, unique=True)
+    stay = models.OneToOneField(Stay, on_delete=models.PROTECT, related_name="invoice", null=True, blank=True)
     guest = models.ForeignKey(Guest, on_delete=models.PROTECT, related_name="invoices")
     reservation = models.ForeignKey(Reservation, on_delete=models.PROTECT, related_name="invoices")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Invoice-level discount in NGN")
     tax = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     amount_paid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -29,6 +30,7 @@ class Invoice(TimeStampedModel):
     currency = models.CharField(max_length=3, default="NGN")
     issued_at = models.DateTimeField(null=True, blank=True)
     due_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -49,8 +51,10 @@ class Invoice(TimeStampedModel):
             models.CheckConstraint(condition=Q(balance__gte=0), name="invoice_balance_gte_0"),
         ]
         indexes = [
+            models.Index(fields=["invoice_number"], name="invoice_number_idx"),
             models.Index(fields=["guest"], name="invoice_guest_idx"),
             models.Index(fields=["reservation"], name="invoice_reservation_idx"),
+            models.Index(fields=["stay"], name="invoice_stay_idx"),
             models.Index(fields=["status"], name="invoice_status_idx"),
             models.Index(fields=["issued_at"], name="invoice_issued_at_idx"),
         ]
@@ -62,19 +66,15 @@ class Invoice(TimeStampedModel):
 class InvoiceItem(models.Model):
     class ItemType(models.TextChoices):
         ROOM = "ROOM", "Room"
-        RESTAURANT = "RESTAURANT", "Restaurant"
-        LAUNDRY = "LAUNDRY", "Laundry"
-        ROOM_SERVICE = "ROOM_SERVICE", "Room service"
-        MINIBAR = "MINIBAR", "Minibar"
-        MAINTENANCE = "MAINTENANCE", "Maintenance"
+        SERVICE = "SERVICE", "Service"
         OTHER = "OTHER", "Other"
 
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="items")
     item_type = models.CharField(max_length=20, choices=ItemType.choices, default=ItemType.ROOM)
     description = models.CharField(max_length=255)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, help_text="Price per unit in NGN")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Total amount (quantity × unit_price) in NGN")
     service_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

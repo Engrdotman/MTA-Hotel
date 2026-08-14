@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { formatStatus, mapValidationErrors, roomStatuses } from "../roomUtils.js";
+import { formatStatus, getApiErrorMessage, mapValidationErrors, roomStatuses } from "../roomUtils.js";
 
 const emptyValues = {
   room_number: "",
@@ -32,7 +32,13 @@ export function RoomForm({ error, isSubmitting, onClose, onSubmit, room, roomTyp
 
   function handleSubmit(event) {
     event.preventDefault();
-    onSubmit(values);
+    onSubmit({
+      room_number: values.room_number.trim(),
+      room_type: values.room_type ? Number(values.room_type) : "",
+      floor: values.floor.trim(),
+      status: values.status,
+      description: values.description.trim(),
+    });
   }
 
   return (
@@ -49,7 +55,7 @@ export function RoomForm({ error, isSubmitting, onClose, onSubmit, room, roomTyp
           </button>
         </div>
 
-        {error && !Object.keys(fieldErrors).length ? <p className="room-form-error">{error}</p> : null}
+        {error && !Object.keys(fieldErrors).length ? <p className="room-form-error">{getApiErrorMessage(error)}</p> : null}
 
         <div className="room-form-grid">
           <RoomField

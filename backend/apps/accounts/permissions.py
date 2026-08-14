@@ -76,3 +76,13 @@ class CanAccessReservations(BasePermission):
         if request.method in ("GET", "HEAD", "OPTIONS"):
             return has_any_role(request.user, self.read_roles)
         return has_any_role(request.user, self.write_roles)
+
+
+class CanAccessStays(BasePermission):
+    read_roles = (Role.ADMIN, Role.MANAGER, Role.RECEPTIONIST, Role.ACCOUNTANT)
+    write_roles = (Role.ADMIN, Role.MANAGER, Role.RECEPTIONIST)
+
+    def has_permission(self, request, view):
+        if request.method in ("GET", "HEAD", "OPTIONS"):
+            return has_any_role(request.user, self.read_roles)
+        return has_any_role(request.user, self.write_roles)

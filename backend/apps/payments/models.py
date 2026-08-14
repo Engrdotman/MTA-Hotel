@@ -11,24 +11,13 @@ class Payment(TimeStampedModel):
         CASH = "CASH", "Cash"
         POS = "POS", "POS"
         BANK_TRANSFER = "BANK_TRANSFER", "Bank transfer"
-        CARD = "CARD", "Card"
-        ONLINE = "ONLINE", "Online"
         OTHER = "OTHER", "Other"
-
-    class Status(models.TextChoices):
-        PENDING = "PENDING", "Pending"
-        SUCCESS = "SUCCESS", "Success"
-        FAILED = "FAILED", "Failed"
-        REFUNDED = "REFUNDED", "Refunded"
-        CANCELLED = "CANCELLED", "Cancelled"
 
     payment_reference = models.CharField(max_length=50, unique=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT, related_name="payments")
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    method = models.CharField(max_length=20, choices=Method.choices)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-    transaction_reference = models.CharField(max_length=100, blank=True)
-    paid_at = models.DateTimeField(null=True, blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Payment amount in NGN")
+    method = models.CharField(max_length=20, choices=Method.choices, default=Method.CASH)
+    payment_date = models.DateTimeField(null=True, blank=True)
     received_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -39,16 +28,15 @@ class Payment(TimeStampedModel):
     notes = models.TextField(blank=True)
 
     class Meta:
-        ordering = ["-paid_at", "-created_at"]
+        ordering = ["-payment_date", "-created_at"]
         constraints = [
             models.UniqueConstraint(fields=["payment_reference"], name="unique_payment_reference"),
             models.CheckConstraint(condition=Q(amount__gt=0), name="payment_amount_gt_0"),
         ]
         indexes = [
+            models.Index(fields=["payment_reference"], name="payment_reference_idx"),
             models.Index(fields=["invoice"], name="payment_invoice_idx"),
-            models.Index(fields=["transaction_reference"], name="payment_transaction_ref_idx"),
-            models.Index(fields=["status"], name="payment_status_idx"),
-            models.Index(fields=["paid_at"], name="payment_paid_at_idx"),
+            models.Index(fields=["payment_date"], name="payment_date_idx"),
         ]
 
     def __str__(self):

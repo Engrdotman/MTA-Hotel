@@ -182,6 +182,21 @@ class ReservationApiTests(APITestCase):
         self.assertEqual(response.data["room_number"], "102")
         self.assertEqual(response.data["children"], 1)
 
+    def test_moving_reservation_releases_old_room(self):
+        reservation = self.create_reservation(status=Reservation.Status.CONFIRMED)
+
+        response = self.client.patch(
+            reverse("reservation-detail", kwargs={"pk": reservation.pk}),
+            {"room": self.second_room.id},
+            format="json",
+        )
+        self.room.refresh_from_db()
+        self.second_room.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.room.status, Room.Status.AVAILABLE)
+        self.assertEqual(self.second_room.status, Room.Status.RESERVED)
+
     def test_update_reservation_status(self):
         reservation = self.create_reservation(status=Reservation.Status.CONFIRMED)
 
@@ -195,6 +210,19 @@ class ReservationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["status"], Reservation.Status.CHECKED_IN)
         self.assertEqual(self.room.status, Room.Status.OCCUPIED)
+
+    def test_cancelling_reservation_releases_room(self):
+        reservation = self.create_reservation(status=Reservation.Status.CONFIRMED)
+
+        response = self.client.patch(
+            reverse("reservation-status", kwargs={"pk": reservation.pk}),
+            {"status": Reservation.Status.CANCELLED},
+            format="json",
+        )
+        self.room.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.room.status, Room.Status.AVAILABLE)
 
     def test_reservation_search_and_filtering(self):
         self.create_reservation(reservation_number="RSV-000001", status=Reservation.Status.CONFIRMED)

@@ -7,8 +7,10 @@ urlpatterns = [
     path("api/auth/", include("apps.accounts.urls")),
     path("api/users/", include("apps.accounts.user_urls")),
     path("api/guests/", include("apps.guests.urls")),
+    path("api/billing/", include("apps.billing.urls")),
     path("api/", include("apps.rooms.urls")),
     path("api/", include("apps.reservations.urls")),
+    path("api/", include("apps.stays.urls")),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:

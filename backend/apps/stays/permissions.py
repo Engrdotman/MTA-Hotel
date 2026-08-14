@@ -1,2 +1,4 @@
-# Stay-specific permissions will live here.
+from apps.accounts.permissions import CanAccessStays
 
+
+__all__ = ["CanAccessStays"]

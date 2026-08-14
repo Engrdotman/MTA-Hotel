@@ -48,6 +48,7 @@ def create_reservation(validated_data, created_by=None):
 
 def update_reservation(instance, validated_data):
     extra_guest_ids = validated_data.pop("additional_guest_ids", None)
+    original_room_id = instance.room_id
 
     with transaction.atomic():
         for field, value in validated_data.items():
@@ -57,6 +58,8 @@ def update_reservation(instance, validated_data):
         if extra_guest_ids is not None:
             sync_reservation_guests(instance, extra_guest_ids)
 
+        if original_room_id != instance.room_id:
+            recalculate_room_status(Room.objects.get(pk=original_room_id))
         update_room_status_for_reservation(instance)
 
     return instance
@@ -103,13 +106,28 @@ def has_room_conflict(room, check_in_date, check_out_date, exclude_reservation_i
 
 
 def update_room_status_for_reservation(reservation):
-    if reservation.status == Reservation.Status.CHECKED_IN:
-        reservation.room.status = Room.Status.OCCUPIED
-        reservation.room.save(update_fields=["status", "updated_at"])
-    elif reservation.status in [Reservation.Status.PENDING, Reservation.Status.CONFIRMED]:
-        if reservation.room.status == Room.Status.AVAILABLE:
-            reservation.room.status = Room.Status.RESERVED
-            reservation.room.save(update_fields=["status", "updated_at"])
+    recalculate_room_status(reservation.room)
+
+
+def recalculate_room_status(room):
+    managed_statuses = [Room.Status.AVAILABLE, Room.Status.RESERVED, Room.Status.OCCUPIED]
+    active_reservations = Reservation.objects.filter(
+        room=room,
+        status__in=ACTIVE_RESERVATION_STATUSES,
+    )
+
+    if active_reservations.filter(status=Reservation.Status.CHECKED_IN).exists():
+        next_status = Room.Status.OCCUPIED
+    elif active_reservations.exists():
+        next_status = Room.Status.RESERVED
+    elif room.status in managed_statuses:
+        next_status = Room.Status.AVAILABLE
+    else:
+        return
+
+    if room.status != next_status:
+        room.status = next_status
+        room.save(update_fields=["status", "updated_at"])
 
 
 def build_reservation_summary():
