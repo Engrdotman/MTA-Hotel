@@ -41,7 +41,7 @@ export const navigationSections = [
   {
     label: "Management",
     items: [
-      { label: "Reports", path: "/reports", icon: FileBarChart, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT] },
+      { label: "Reports", path: "/reports", icon: FileBarChart, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST] },
       { label: "Users", path: "/users", icon: ShieldCheck, roles: [ROLES.ADMIN] },
     ],
   },

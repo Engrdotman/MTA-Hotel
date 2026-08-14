@@ -10,6 +10,7 @@ import { Rooms } from "./pages/Rooms.jsx";
 import { Unauthorized } from "./pages/Unauthorized.jsx";
 import { Users } from "./pages/Users.jsx";
 import { Billing } from "./pages/Billing.jsx";
+import { Reports } from "./pages/Reports.jsx";
 import { ROLES } from "./features/auth/authorization.js";
 import { ProtectedRoute, PublicRoute } from "./features/auth/ProtectedRoute.jsx";
 
@@ -79,7 +80,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "/reports",
-        element: <PlaceholderPage title="Reports" />,
+        element: (
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST]}>
+            <Reports />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/staff",
