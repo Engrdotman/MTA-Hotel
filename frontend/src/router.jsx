@@ -9,6 +9,7 @@ import { Reservations } from "./pages/Reservations.jsx";
 import { Rooms } from "./pages/Rooms.jsx";
 import { Unauthorized } from "./pages/Unauthorized.jsx";
 import { Users } from "./pages/Users.jsx";
+import { Billing } from "./pages/Billing.jsx";
 import { ROLES } from "./features/auth/authorization.js";
 import { ProtectedRoute, PublicRoute } from "./features/auth/ProtectedRoute.jsx";
 
@@ -57,16 +58,20 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "/billing",
+        element: (
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST]}>
+            <Billing />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/unauthorized",
         element: <Unauthorized />,
       },
       {
         path: "/check-in",
         element: <PlaceholderPage title="Check-in / Check-out" />,
-      },
-      {
-        path: "/billing",
-        element: <PlaceholderPage title="Billing" />,
       },
       {
         path: "/payments",
