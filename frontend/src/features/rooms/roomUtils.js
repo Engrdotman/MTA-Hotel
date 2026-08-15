@@ -42,12 +42,12 @@ export function formatDate(value) {
 }
 
 export function getApiErrorMessage(error) {
-  if (!error.response) {
+  if (!error || !error.response) {
     return "Network error. Please check your connection and try again.";
   }
 
   if (error.response.status === 401) {
-    return "Your session has expired. Please sign in again.";
+    return "Record was not found.";
   }
 
   if (error.response.status === 403) {
@@ -70,7 +70,7 @@ export function getApiErrorMessage(error) {
 }
 
 export function mapValidationErrors(error) {
-  if (!error.response || ![400, 422].includes(error.response.status)) {
+  if (!error || !error.response || ![400, 422].includes(error.response.status)) {
     return {};
   }
 

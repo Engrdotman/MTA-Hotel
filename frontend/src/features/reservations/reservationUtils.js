@@ -35,7 +35,7 @@ export function formatDate(value) {
 }
 
 export function getApiErrorMessage(error) {
-  if (!error.response) {
+  if (!error || !error.response) {
     return "Network error. Please check your connection and try again.";
   }
 
@@ -59,7 +59,7 @@ export function getApiErrorMessage(error) {
 }
 
 export function mapValidationErrors(error) {
-  if (!error.response || ![400, 422].includes(error.response.status)) {
+  if (!error || !error.response || ![400, 422].includes(error.response.status)) {
     return {};
   }
 
