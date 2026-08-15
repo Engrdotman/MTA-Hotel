@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../features/auth/useAuth';
+import { useAuth } from '../features/auth/authContext.js';
 import useReports from '../features/reports/hooks/useReports';
 import {
   formatCurrency,
