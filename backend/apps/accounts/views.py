@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from apps.audit.models import AuditLog
 
 from .models import User
-from .permissions import IsAdmin
+from apps.accounts.permissions import IsAdmin, CanManageUsers
 from .serializers import LoginSerializer, LogoutSerializer
 from .serializers import StaffUserCreateSerializer, StaffUserSerializer, StaffUserUpdateSerializer
 from .services import (
@@ -70,7 +70,7 @@ class RefreshTokenView(TokenRefreshView):
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.select_related("role").order_by("email")
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, CanManageUsers]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -79,8 +79,26 @@ class UserViewSet(ModelViewSet):
             return StaffUserUpdateSerializer
         return StaffUserSerializer
 
+    def perform_update(self, serializer):
+        """Prevent changing admin user's role"""
+        instance = self.get_object()
+        validated_data = serializer.validated_data
+        
+        # Prevent removing admin role
+        if instance.role and instance.role.name == "Admin":
+            if "role" in validated_data and validated_data["role"] != "Admin":
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Cannot change Admin user role.")
+        
+        serializer.save()
+
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
+        # Prevent deleting admin users
+        if user.role and user.role.name == "Admin":
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Cannot delete Admin users.")
+        
         user.is_active = False
         user.save(update_fields=["is_active", "updated_at"])
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -726,3 +726,19 @@
     text-transform: uppercase;
   }
 }
+
+.dashboard-loading,
+.dashboard-error {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 1rem;
+}
+
+.dashboard-error {
+  padding: 20px;
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  border-radius: var(--radius-lg);
+  background: rgba(244, 67, 54, 0.09);
+  color: #c62828;
+}
