@@ -70,10 +70,27 @@ export function LoginForm() {
     setFormMessage("");
 
     try {
-      await login({
+      // Map UI role selection to actual role names
+      const roleMap = {
+        front_desk: "RECEPTIONIST",
+        manager: "MANAGER",
+        admin: "ADMIN",
+      };
+      const selectedRole = roleMap[values.role];
+
+      // Login and get user data
+      const user = await login({
         email: values.email.trim(),
         password: values.password,
       });
+
+      // Check if user has the selected role
+      if (user.role !== selectedRole) {
+        setFormMessage(`Access denied. You have "${user.role}" role, not "${values.role}". Please use appropriate credentials.`);
+        setIsSubmitting(false);
+        return;
+      }
+
       navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error.response?.status === 401) {
