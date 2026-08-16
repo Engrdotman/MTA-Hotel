@@ -7,6 +7,7 @@ import { Login } from "./pages/Login.jsx";
 import { PlaceholderPage } from "./pages/PlaceholderPage.jsx";
 import { Reservations } from "./pages/Reservations.jsx";
 import { Rooms } from "./pages/Rooms.jsx";
+import { CheckInCheckOut } from "./pages/CheckInCheckOut.jsx";
 import { Unauthorized } from "./pages/Unauthorized.jsx";
 import { Users } from "./pages/Users.jsx";
 import { Billing } from "./pages/Billing.jsx";
@@ -72,7 +73,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/check-in",
-        element: <PlaceholderPage title="Check-in / Check-out" />,
+        element: <CheckInCheckOut />,
       },
       {
         path: "/payments",

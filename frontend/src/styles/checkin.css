@@ -1,0 +1,151 @@
+.page-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.page-header p {
+  color: #666;
+  margin: 0;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: #333;
+}
+
+.tab.active {
+  color: #6b5b95;
+  border-bottom-color: #6b5b95;
+}
+
+.error-banner {
+  background-color: #fee;
+  border: 1px solid #f99;
+  color: #c00;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 2rem;
+  color: #999;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  color: #999;
+}
+
+.stays-table {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.stays-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.stays-table thead {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.stays-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+}
+
+.stays-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stays-table tbody tr:hover {
+  background-color: #fafafa;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status.checked_in {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.checked_out {
+  background-color: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.btn-small.danger {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-small.danger:hover:not(:disabled) {
+  background-color: #d32f2f;
+}
+
+.btn-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.text-muted {
+  color: #999;
+  font-size: 0.875rem;
+}
