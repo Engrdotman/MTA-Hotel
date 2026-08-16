@@ -168,6 +168,24 @@ class ReportServiceTestCase(TestCase):
         # Cash should match our payment
         self.assertGreater(Decimal(data['cash']), 0)
 
+    def test_revenue_report_uses_payment_date(self):
+        """Revenue should follow payment_date, not when the row was created."""
+        yesterday = self.check_in - timedelta(days=1)
+        Payment.objects.create(
+            payment_reference="PAY-000003",
+            invoice=self.invoice,
+            amount=Decimal("10000.00"),
+            method=Payment.Method.POS,
+            payment_date=datetime.combine(yesterday, datetime.min.time(), tzinfo=timezone.utc),
+            received_by=self.admin,
+        )
+
+        today_data = ReportService.get_revenue_report(self.check_in, self.check_in)
+        yesterday_data = ReportService.get_revenue_report(yesterday, yesterday)
+
+        self.assertEqual(Decimal(today_data["pos"]), Decimal("0"))
+        self.assertEqual(Decimal(yesterday_data["pos"]), Decimal("10000.00"))
+
     def test_revenue_report_payment_methods(self):
         """Test revenue report payment method breakdown."""
         # Create additional payments

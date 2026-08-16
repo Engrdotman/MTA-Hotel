@@ -1,54 +1,40 @@
-import axios from 'axios';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-const client = axios.create({
-  baseURL: `${API_BASE}/billing`,
-});
-
-// Add auth token to requests
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import { api } from '../../../services/api.js';
 
 export const billingService = {
   // Invoice operations
   getInvoices: (params = {}) =>
-    client.get('/invoices/', { params }),
+    api.get('/billing/invoices/', { params }),
 
   getInvoice: (id) =>
-    client.get(`/invoices/${id}/`),
+    api.get(`/billing/invoices/${id}/`),
 
   createInvoice: (data) =>
-    client.post('/invoices/', data),
+    api.post('/billing/invoices/', data),
 
   updateInvoice: (id, data) =>
-    client.patch(`/invoices/${id}/`, data),
+    api.patch(`/billing/invoices/${id}/`, data),
 
   issueInvoice: (id) =>
-    client.post(`/invoices/${id}/issue/`),
+    api.post(`/billing/invoices/${id}/issue/`),
 
   voidInvoice: (id) =>
-    client.post(`/invoices/${id}/void/`),
+    api.post(`/billing/invoices/${id}/void/`),
 
   // Payment operations
   getPayments: (invoiceId) =>
-    client.get(`/invoices/${invoiceId}/payments/`),
+    api.get(`/billing/invoices/${invoiceId}/payments/`),
 
   recordPayment: (invoiceId, data) =>
-    client.post(`/invoices/${invoiceId}/record_payment/`, data),
+    api.post(`/billing/invoices/${invoiceId}/record_payment/`, data),
 
   // Search and filter
   searchInvoices: (query) =>
-    client.get('/invoices/', {
+    api.get('/billing/invoices/', {
       params: { search: query },
     }),
 
   filterInvoices: (filters) =>
-    client.get('/invoices/', { params: filters }),
+    api.get('/billing/invoices/', { params: filters }),
 };
 
 export default billingService;

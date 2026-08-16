@@ -48,9 +48,12 @@ class ReportService:
             status=Stay.Status.CHECKED_IN
         ).count()
 
-        # Today's revenue (payments recorded today)
-        today_revenue = Payment.objects.filter(
-            created_at__date=today
+        # Today's revenue (payments received today). Fall back to created_at for
+        # legacy rows where payment_date was not populated.
+        today_revenue = Payment.objects.annotate(
+            received_at=Coalesce("payment_date", "created_at")
+        ).filter(
+            received_at__date=today
         ).aggregate(total=Sum('amount', output_field=DecimalField()))['total'] or Decimal('0')
 
         # Outstanding balance (sum of all invoice balances)
@@ -191,10 +194,13 @@ class ReportService:
         start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
         end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
 
-        # Query payments within date range
-        payments = Payment.objects.filter(
-            created_at__gte=start_datetime,
-            created_at__lte=end_datetime,
+        # Query payments within date range using the business payment date.
+        # Fall back to created_at for legacy/manual rows without payment_date.
+        payments = Payment.objects.annotate(
+            received_at=Coalesce("payment_date", "created_at")
+        ).filter(
+            received_at__gte=start_datetime,
+            received_at__lte=end_datetime,
         )
 
         # Total revenue

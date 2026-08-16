@@ -83,9 +83,14 @@ export const getRoomStatusColor = (status) => {
 /**
  * Check if user can access financial reports
  */
+export const normalizeRole = (role) => {
+  if (!role) return null;
+  return typeof role === 'string' ? role : role.name;
+};
+
 export const canAccessFinancialReports = (userRole) => {
   const financialRoles = ['ADMIN', 'MANAGER', 'ACCOUNTANT'];
-  return financialRoles.includes(userRole);
+  return financialRoles.includes(normalizeRole(userRole));
 };
 
 /**
@@ -93,7 +98,7 @@ export const canAccessFinancialReports = (userRole) => {
  */
 export const canAccessOperationalReports = (userRole) => {
   const operationalRoles = ['ADMIN', 'MANAGER', 'RECEPTIONIST'];
-  return operationalRoles.includes(userRole);
+  return operationalRoles.includes(normalizeRole(userRole));
 };
 
 /**

@@ -1,20 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../features/auth/authContext.js';
+import { api } from '../services/api.js';
 import '../styles/checkin.css';
 
-const api = 'http://localhost:8000/api';
-
 export const CheckInCheckOut = () => {
-  const { user, token } = useAuth();
   const [stays, setStays] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState('checked_in');
-
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
 
   useEffect(() => {
     loadStays();
@@ -30,12 +22,10 @@ export const CheckInCheckOut = () => {
         checked_out: 'CHECKED_OUT',
       };
       const apiStatus = statusMap[filterStatus];
-      const response = await fetch(`${api}/stays/?status=${apiStatus}`, { headers });
-      if (!response.ok) throw new Error(`Failed to load stays (${response.status})`);
-      const data = await response.json();
-      setStays(data.results || data);
+      const response = await api.get(`/stays/`, { params: { status: apiStatus } });
+      setStays(response.data.results || response.data);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message || 'Failed to load stays');
     } finally {
       setLoading(false);
     }
@@ -46,16 +36,11 @@ export const CheckInCheckOut = () => {
     
     try {
       setLoading(true);
-      const response = await fetch(`${api}/stays/${stayId}/check-out/`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ notes: '' }),
-      });
-      if (!response.ok) throw new Error('Failed to check out');
+      await api.post(`/stays/${stayId}/check-out/`, { notes: '' });
       setError(null);
       loadStays();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message || 'Failed to check out');
     } finally {
       setLoading(false);
     }

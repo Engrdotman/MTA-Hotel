@@ -18,9 +18,8 @@ export function RecentReservations({ reservations }) {
       <div className="card-heading card-heading-row">
         <div>
           <h2>Recent Reservations</h2>
-          <p>Frontend mock data for today's desk review.</p>
+          <p>Latest reservations from the booking desk.</p>
         </div>
-        <span className="mock-label">Mock data</span>
       </div>
 
       <DataTable columns={columns} rows={reservations} />

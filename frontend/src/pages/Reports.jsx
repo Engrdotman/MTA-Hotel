@@ -4,12 +4,9 @@ import useReports from '../features/reports/hooks/useReports';
 import {
   formatCurrency,
   formatPercent,
-  formatDate,
-  formatDateForAPI,
   getTodayForAPI,
   getOccupancyColor,
   canAccessFinancialReports,
-  canAccessOperationalReports,
 } from '../features/reports/reportUtils';
 import '../styles/reports.css';
 
@@ -44,15 +41,15 @@ export const Reports = () => {
       await fetchDashboard();
       await fetchOccupancy();
       await fetchReservations();
-      if (canAccessFinancialReports(user?.role?.name)) {
+      if (canAccessFinancialReports(user?.role)) {
         try {
           await fetchRevenue();
-        } catch (err) {
+        } catch {
           console.error('Failed to load revenue report (permission denied)');
         }
         try {
           await fetchOutstanding();
-        } catch (err) {
+        } catch {
           console.error('Failed to load outstanding report (permission denied)');
         }
       }
@@ -69,8 +66,8 @@ export const Reports = () => {
       await Promise.all([
         fetchOccupancy(params),
         fetchReservations(params),
-        canAccessFinancialReports(user?.role?.name) && fetchRevenue(params),
-        canAccessFinancialReports(user?.role?.name) && fetchOutstanding(params),
+        canAccessFinancialReports(user?.role) && fetchRevenue(params),
+        canAccessFinancialReports(user?.role) && fetchOutstanding(params),
       ].filter(Boolean));
     } catch (err) {
       console.error('Failed to apply filter:', err);
@@ -169,7 +166,7 @@ export const Reports = () => {
             <div className="card-value">{dashboard.current_guests}</div>
           </div>
 
-          {canAccessFinancialReports(user?.role?.name) && (
+          {canAccessFinancialReports(user?.role) && (
             <>
               <div className="card financial">
                 <div className="card-label">Today's Revenue</div>
@@ -255,7 +252,7 @@ export const Reports = () => {
         )}
 
         {/* Revenue Report */}
-        {canAccessFinancialReports(user?.role?.name) && revenue && (
+        {canAccessFinancialReports(user?.role) && revenue && (
           <div className="report-card financial-card">
             <h3>Revenue Report</h3>
             <div className="revenue-total">
@@ -284,7 +281,7 @@ export const Reports = () => {
         )}
 
         {/* Outstanding Report */}
-        {canAccessFinancialReports(user?.role?.name) && outstanding && (
+        {canAccessFinancialReports(user?.role) && outstanding && (
           <div className="report-card financial-card">
             <h3>Outstanding Balances</h3>
             <div className="outstanding-total">
