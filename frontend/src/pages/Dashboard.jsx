@@ -1,5 +1,4 @@
 import { CalendarDays } from "lucide-react";
-import { useState } from "react";
 
 import { QuickActions } from "../components/dashboard/QuickActions.jsx";
 import { RecentReservations } from "../components/dashboard/RecentReservations.jsx";
@@ -11,12 +10,7 @@ import useDashboard from "../features/dashboard/useDashboard.js";
 export function Dashboard() {
   const { user } = useAuth();
   const { dashboard, occupancy, reservations, loading, error } = useDashboard();
-  const [notice, setNotice] = useState("");
   const firstName = user?.first_name || user?.email || "there";
-
-  function handleQuickAction(label) {
-    setNotice(`${label} will be available when the module is implemented.`);
-  }
 
   if (error) {
     return (
@@ -93,12 +87,6 @@ export function Dashboard() {
         </div>
       </section>
 
-      {notice ? (
-        <div className="dashboard-notice" role="status">
-          {notice}
-        </div>
-      ) : null}
-
       <section className="stat-grid" aria-label="Hotel summary">
         {statCards.map((stat) => (
           <StatCard key={stat.id} stat={stat} />
@@ -107,7 +95,7 @@ export function Dashboard() {
 
       <section className="dashboard-grid">
         <RoomStatusOverview statuses={roomStatus} />
-        <QuickActions onAction={handleQuickAction} />
+        <QuickActions />
       </section>
 
       <RecentReservations reservations={reservations} />

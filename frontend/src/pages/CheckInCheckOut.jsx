@@ -24,8 +24,14 @@ export const CheckInCheckOut = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${api}/stays/?status=${filterStatus}`, { headers });
-      if (!response.ok) throw new Error('Failed to load stays');
+      // Map UI status to API status
+      const statusMap = {
+        checked_in: 'CHECKED_IN',
+        checked_out: 'CHECKED_OUT',
+      };
+      const apiStatus = statusMap[filterStatus];
+      const response = await fetch(`${api}/stays/?status=${apiStatus}`, { headers });
+      if (!response.ok) throw new Error(`Failed to load stays (${response.status})`);
       const data = await response.json();
       setStays(data.results || data);
     } catch (err) {
