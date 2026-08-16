@@ -90,22 +90,18 @@ class CanAccessStays(BasePermission):
 
 class CanManageUsers(BasePermission):
     """Permission for user management endpoints"""
-    # Only Admin can list, view, and manage all users
-    # Manager, Accountant, Receptionist can only create STAFF users
     
     def has_permission(self, request, view):
-        # List and create users
-        if request.method in ("GET", "POST"):
-            return has_any_role(request.user, (Role.ADMIN, Role.MANAGER, Role.ACCOUNTANT, Role.RECEPTIONIST))
-        # Update, partial update, delete (admin only)
-        if request.method in ("PUT", "PATCH", "DELETE"):
-            return has_role(request.user, Role.ADMIN)
-        return False
+        # Manager and Admin can manage users, but managers can only see/create staff users
+        return has_any_role(request.user, (Role.ADMIN, Role.MANAGER))
     
     def has_object_permission(self, request, view, obj):
-        # Cannot modify own role if admin
-        if request.method in ("PUT", "PATCH", "DELETE"):
-            if request.user == obj:
-                return has_role(request.user, Role.ADMIN)
-            return has_role(request.user, Role.ADMIN)
-        return True
+        user_role = get_user_role(request.user)
+        # Admin can do anything
+        if user_role == Role.ADMIN:
+            return True
+        # Manager cannot modify other managers or admins
+        if user_role == Role.MANAGER:
+            obj_role = get_user_role(obj)
+            return obj_role not in (Role.ADMIN, Role.MANAGER)
+        return False

@@ -19,7 +19,8 @@ def apply_room_filters(queryset, params):
         queryset = queryset.filter(room_type_id=room_type)
 
     if status:
-        queryset = queryset.filter(status=status)
+        # Make status filter case-insensitive
+        queryset = queryset.filter(status__iexact=status)
 
     if floor:
         queryset = queryset.filter(floor__iexact=floor)

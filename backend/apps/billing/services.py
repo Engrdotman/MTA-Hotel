@@ -1,5 +1,5 @@
 from decimal import Decimal
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from django.db import transaction
 
@@ -13,6 +13,14 @@ class InvoiceService:
 
     INVOICE_PREFIX = "INV"
     MAX_INVOICE_NUMBER = 999999
+
+    @staticmethod
+    def as_date(value):
+        if isinstance(value, datetime):
+            return value.date()
+        if isinstance(value, date):
+            return value
+        raise TypeError("Stay charge dates must be date or datetime values.")
 
     @staticmethod
     def generate_invoice_number():
@@ -52,7 +60,7 @@ class InvoiceService:
             check_out = stay.reservation.check_out_date
         
         # Calculate number of nights
-        nights = (check_out.date() - check_in.date()).days
+        nights = (InvoiceService.as_date(check_out) - InvoiceService.as_date(check_in)).days
         if nights <= 0:
             nights = 1
         
@@ -128,7 +136,7 @@ class InvoiceService:
             quantity=Decimal(nights),
             unit_price=room_rate,
             amount=room_charge,
-            service_date=stay.checked_in_at.date(),
+            service_date=InvoiceService.as_date(stay.checked_in_at),
         )
         
         return invoice

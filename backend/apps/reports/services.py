@@ -1,6 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 from django.db.models import Q, Count, Sum, Case, When, DecimalField
+from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
 
 from apps.rooms.models import Room, RoomType
@@ -110,7 +111,7 @@ class ReportService:
             occupancy_rate = Decimal(occupied) / Decimal(total_rooms) * Decimal('100')
             occupancy_rate = occupancy_rate.quantize(Decimal('0.01'))
         else:
-            occupancy_rate = Decimal('0')
+            occupancy_rate = Decimal('0.00')
 
         return {
             'date_range': {
@@ -235,10 +236,13 @@ class ReportService:
             start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
             end_datetime = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
 
-            # Filter by issued date
-            invoices = invoices.filter(
-                issued_at__gte=start_datetime,
-                issued_at__lte=end_datetime,
+            # Prefer issued_at when present, but include older/manual issued invoices
+            # that only have created_at populated.
+            invoices = invoices.annotate(
+                report_date=Coalesce("issued_at", "created_at")
+            ).filter(
+                report_date__gte=start_datetime,
+                report_date__lte=end_datetime,
             )
 
         # Total outstanding balance

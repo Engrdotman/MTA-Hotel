@@ -120,6 +120,11 @@ class ReportServiceTestCase(TestCase):
 
     def test_occupancy_report_zero_rooms(self):
         """Test occupancy report with no rooms."""
+        Payment.objects.all().delete()
+        InvoiceItem.objects.all().delete()
+        Invoice.objects.all().delete()
+        Stay.objects.all().delete()
+        Reservation.objects.all().delete()
         Room.objects.all().delete()
         data = ReportService.get_occupancy_report()
         self.assertEqual(data['total_rooms'], 0)

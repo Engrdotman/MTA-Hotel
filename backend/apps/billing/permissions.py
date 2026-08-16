@@ -8,7 +8,7 @@ class CanAccessBilling(BasePermission):
     """Permission for billing operations."""
     
     # Roles that can create and manage invoices
-    manage_roles = (Role.ADMIN, Role.MANAGER, Role.ACCOUNTANT)
+    manage_roles = (Role.ADMIN, Role.MANAGER, Role.ACCOUNTANT, Role.RECEPTIONIST)
     
     # Roles that can view billing information
     read_roles = (Role.ADMIN, Role.MANAGER, Role.ACCOUNTANT, Role.RECEPTIONIST)
