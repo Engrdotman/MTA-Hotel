@@ -45,8 +45,16 @@ export const Reports = () => {
       await fetchOccupancy();
       await fetchReservations();
       if (canAccessFinancialReports(user?.role?.name)) {
-        await fetchRevenue();
-        await fetchOutstanding();
+        try {
+          await fetchRevenue();
+        } catch (err) {
+          console.error('Failed to load revenue report (permission denied)');
+        }
+        try {
+          await fetchOutstanding();
+        } catch (err) {
+          console.error('Failed to load outstanding report (permission denied)');
+        }
       }
     } catch (err) {
       console.error('Failed to load reports:', err);
@@ -63,7 +71,7 @@ export const Reports = () => {
         fetchReservations(params),
         canAccessFinancialReports(user?.role?.name) && fetchRevenue(params),
         canAccessFinancialReports(user?.role?.name) && fetchOutstanding(params),
-      ]);
+      ].filter(Boolean));
     } catch (err) {
       console.error('Failed to apply filter:', err);
     }
