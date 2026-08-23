@@ -104,11 +104,15 @@
 }
 
 .status {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid transparent;
+  padding: 0 0.78rem;
   border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .status.checked_in {
@@ -198,13 +202,15 @@
 }
 
 .status.checked_in {
-  background: rgba(79, 154, 95, 0.14);
-  color: var(--color-success);
+  border-color: rgba(43, 122, 64, 0.28);
+  background: #e8f5eb;
+  color: #1f6f38;
 }
 
 .status.checked_out {
-  background: rgba(201, 162, 75, 0.18);
-  color: #8a6200;
+  border-color: rgba(154, 101, 15, 0.28);
+  background: #fff1d6;
+  color: #7a4f09;
 }
 
 .btn-small.danger {

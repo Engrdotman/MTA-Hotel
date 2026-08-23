@@ -87,17 +87,19 @@
 /* Summary Cards */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .card {
+  min-width: 0;
   background: white;
-  padding: 1.5rem;
+  padding: 1.45rem 1.35rem;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border-left: 4px solid #1976d2;
+  overflow: hidden;
 }
 
 .card.financial {
@@ -111,12 +113,16 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 0.75rem;
+  line-height: 1.25;
 }
 
 .card-value {
-  font-size: 2rem;
-  font-weight: 700;
+  max-width: 100%;
   color: #1a1a1a;
+  font-size: clamp(1.55rem, 1.7vw, 2rem);
+  font-weight: 700;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
 }
 
 .card-value.accent-orange {
@@ -134,11 +140,12 @@
 /* Reports Grid */
 .reports-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
   gap: 1.5rem;
 }
 
 .report-card {
+  min-width: 0;
   background: white;
   padding: 1.5rem;
   border-radius: 0.5rem;
@@ -236,9 +243,12 @@
 
 .revenue-total .amount,
 .outstanding-total .amount {
-  font-size: 1.75rem;
+  max-width: 100%;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
   font-weight: 700;
   color: #1a1a1a;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 /* Buttons */
@@ -296,7 +306,7 @@
   }
 
   .summary-cards {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   }
 }
 

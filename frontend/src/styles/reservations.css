@@ -239,13 +239,13 @@
   min-height: 32px;
   display: inline-flex !important;
   align-items: center;
-  border: 1px solid rgba(106, 27, 154, 0.16);
+  border: 1px solid rgba(154, 101, 15, 0.28);
   border-radius: var(--radius-sm);
-  padding: 0 10px;
-  color: var(--color-primary) !important;
-  background: var(--color-lavender);
+  padding: 0 11px;
+  color: #7a4f09 !important;
+  background: #fff1d6;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .reservation-actions {

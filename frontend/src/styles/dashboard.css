@@ -331,17 +331,19 @@
 }
 
 .stat-card p {
-  color: var(--color-muted);
+  color: rgba(44, 42, 38, 0.8);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .stat-card strong {
   display: block;
   margin-top: 8px;
   color: var(--color-charcoal);
-  font-size: 2rem;
-  line-height: 1;
+  max-width: 100%;
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
 }
 
 .stat-card > span {
@@ -423,9 +425,9 @@
 }
 
 .room-status-row span {
-  color: var(--color-muted);
+  color: rgba(44, 42, 38, 0.78);
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .room-status-row strong {
@@ -523,25 +525,29 @@
   display: inline-flex;
   align-items: center;
   min-height: 28px;
-  padding: 0 10px;
+  border: 1px solid transparent;
+  padding: 0 11px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .status-confirmed {
-  color: var(--color-success);
-  background: rgba(79, 154, 95, 0.14);
+  border-color: rgba(43, 122, 64, 0.28);
+  color: #1f6f38;
+  background: #e8f5eb;
 }
 
 .status-checked-in {
-  color: #8a6200;
-  background: rgba(201, 162, 75, 0.18);
+  border-color: rgba(154, 101, 15, 0.28);
+  color: #7a4f09;
+  background: #fff1d6;
 }
 
 .status-pending {
-  color: #8a6200;
-  background: rgba(249, 168, 37, 0.18);
+  border-color: rgba(138, 98, 0, 0.26);
+  color: #755300;
+  background: #fff0c2;
 }
 
 .table-empty {

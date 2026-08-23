@@ -1,5 +1,5 @@
 import { createElement } from "react";
-import { Building2, CalendarCheck, ConciergeBell } from "lucide-react";
+import { Building2, CalendarCheck, ConciergeBell, ShieldCheck, Wifi } from "lucide-react";
 
 import { BrandLogo } from "../components/common/BrandLogo.jsx";
 import hotelEntrance from "../assets/hotel-entrance.jpeg";
@@ -10,6 +10,11 @@ const staffAreas = [
   { icon: ConciergeBell, label: "Front desk" },
   { icon: CalendarCheck, label: "Bookings" },
   { icon: Building2, label: "Guest stays" },
+];
+
+const portalStats = [
+  { icon: ShieldCheck, label: "Secure access" },
+  { icon: Wifi, label: "Live operations" },
 ];
 
 export function Login() {
@@ -48,6 +53,14 @@ export function Login() {
             <p>Sign in to access the M.T.A Hotel Management System.</p>
           </div>
           <LoginForm />
+          <dl className="portal-status" aria-label="Portal status">
+            {portalStats.map(({ icon, label }) => (
+              <div key={label}>
+                <dt>{createElement(icon, { "aria-hidden": "true", size: 16 })}</dt>
+                <dd>{label}</dd>
+              </div>
+            ))}
+          </dl>
           <footer>{brand.copyright}</footer>
         </div>
       </section>

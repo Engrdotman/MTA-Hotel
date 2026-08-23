@@ -128,16 +128,19 @@ export function LoginForm() {
           />
           <span>Remember me</span>
         </label>
-        <a href="/login">Forgot password?</a>
+        <a href="/login" aria-label="Request password reset help">
+          Forgot password?
+        </a>
       </div>
 
       {formMessage ? (
-        <p className="form-message" role="status">
+        <p className="form-message" role="alert">
           {formMessage}
         </p>
       ) : null}
 
       <Button
+        aria-busy={isSubmitting}
         icon={<ArrowRight aria-hidden="true" size={18} />}
         isLoading={isSubmitting}
         type="submit"
