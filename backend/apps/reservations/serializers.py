@@ -23,6 +23,9 @@ class ReservationSerializer(serializers.ModelSerializer):
     guest_code = serializers.CharField(source="guest.guest_code", read_only=True)
     room_number = serializers.CharField(source="room.room_number", read_only=True)
     room_type_name = serializers.CharField(source="room.room_type.name", read_only=True)
+    room_type_capacity = serializers.IntegerField(source="room.room_type.capacity", read_only=True)
+    room_type_max_adults = serializers.IntegerField(source="room.room_type.max_adults", read_only=True)
+    room_type_max_children = serializers.IntegerField(source="room.room_type.max_children", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     source_display = serializers.CharField(source="get_source_display", read_only=True)
     nights = serializers.SerializerMethodField()
@@ -46,6 +49,9 @@ class ReservationSerializer(serializers.ModelSerializer):
             "room",
             "room_number",
             "room_type_name",
+            "room_type_capacity",
+            "room_type_max_adults",
+            "room_type_max_children",
             "check_in_date",
             "check_out_date",
             "nights",
@@ -69,6 +75,9 @@ class ReservationSerializer(serializers.ModelSerializer):
             "guest_code",
             "room_number",
             "room_type_name",
+            "room_type_capacity",
+            "room_type_max_adults",
+            "room_type_max_children",
             "status_display",
             "source_display",
             "nights",
@@ -106,6 +115,25 @@ class ReservationSerializer(serializers.ModelSerializer):
 
         if children < 0:
             raise serializers.ValidationError({"children": "Children cannot be negative."})
+
+        if room:
+            room_type = room.room_type
+            total_occupants = adults + children
+
+            if adults > room_type.max_adults:
+                raise serializers.ValidationError(
+                    {"adults": f"This room allows a maximum of {room_type.max_adults} adult(s)."}
+                )
+
+            if children > room_type.max_children:
+                raise serializers.ValidationError(
+                    {"children": f"This room allows a maximum of {room_type.max_children} child(ren)."}
+                )
+
+            if total_occupants > room_type.capacity:
+                raise serializers.ValidationError(
+                    {"room": f"This room allows a maximum occupancy of {room_type.capacity} guest(s)."}
+                )
 
         if room and check_in_date and check_out_date:
             exclude_id = self.instance.pk if self.instance else None

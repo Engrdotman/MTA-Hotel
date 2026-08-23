@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Invoice, InvoiceItem
+from .models import Invoice, InvoiceItem, StayCharge
 
 
 class InvoiceItemInline(admin.TabularInline):
@@ -22,3 +22,9 @@ class InvoiceItemAdmin(admin.ModelAdmin):
     list_filter = ("item_type", "service_date")
     search_fields = ("invoice__invoice_number", "description")
 
+
+@admin.register(StayCharge)
+class StayChargeAdmin(admin.ModelAdmin):
+    list_display = ("stay", "charge_type", "description", "amount", "service_date", "status", "invoice")
+    list_filter = ("charge_type", "status", "service_date")
+    search_fields = ("description", "stay__guest__guest_code", "stay__room__room_number", "invoice__invoice_number")

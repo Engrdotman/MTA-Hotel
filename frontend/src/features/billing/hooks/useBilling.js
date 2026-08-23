@@ -4,6 +4,7 @@ import billingService from '../services/billingService';
 export const useBilling = () => {
   const [invoices, setInvoices] = useState([]);
   const [invoice, setInvoice] = useState(null);
+  const [charges, setCharges] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -14,8 +15,9 @@ export const useBilling = () => {
       setLoading(true);
       setError(null);
       const response = await billingService.getInvoices(params);
-      setInvoices(response.data);
-      return response.data;
+      const invoiceData = Array.isArray(response.data) ? response.data : response.data.results || [];
+      setInvoices(invoiceData);
+      return invoiceData;
     } catch (err) {
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to fetch invoices';
       setError(errorMessage);
@@ -112,6 +114,38 @@ export const useBilling = () => {
     }
   }, []);
 
+  const fetchCharges = useCallback(async (params = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await billingService.getCharges(params);
+      const chargeData = Array.isArray(response.data) ? response.data : response.data.results || [];
+      setCharges(chargeData);
+      return chargeData;
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to fetch charges';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createCharge = useCallback(async (data) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await billingService.createCharge(data);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to add charge';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Search invoices
   const searchInvoices = useCallback(async (query) => {
     try {
@@ -150,6 +184,7 @@ export const useBilling = () => {
     // State
     invoices,
     invoice,
+    charges,
     payments,
     loading,
     error,
@@ -161,6 +196,8 @@ export const useBilling = () => {
     issueInvoice,
     voidInvoice,
     recordPayment,
+    fetchCharges,
+    createCharge,
     searchInvoices,
     filterInvoices,
   };

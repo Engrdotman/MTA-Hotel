@@ -17,6 +17,7 @@ export function GuestDetails({ guest, onClose }) {
     ["Nationality", guest.nationality],
     ["Date of Birth", formatDate(guest.date_of_birth)],
     ["Emergency Contact", [guest.emergency_contact_name, guest.emergency_contact_phone].filter(Boolean).join(" / ")],
+    ["Status", guest.is_active ? "Active" : "Archived"],
     ["Notes", guest.notes],
     ["Created Date", formatDate(guest.created_at)],
     ["Updated Date", formatDate(guest.updated_at)],

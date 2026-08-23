@@ -25,6 +25,8 @@ class RoomsApiTests(APITestCase):
             "name": "Standard",
             "description": "Comfortable standard room.",
             "capacity": 2,
+            "max_adults": 2,
+            "max_children": 2,
             "base_price": "25000.00",
         }
         payload.update(overrides)
@@ -80,6 +82,25 @@ class RoomsApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("capacity", response.data)
+
+    def test_room_type_adult_and_child_limits_are_validated(self):
+        response = self.client.post(
+            reverse("room-type-list"),
+            self.room_type_payload(capacity=2, max_adults=3, max_children=1),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("max_adults", response.data)
+
+        response = self.client.post(
+            reverse("room-type-list"),
+            self.room_type_payload(name="Child Limit", capacity=2, max_adults=2, max_children=3),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("max_children", response.data)
 
     def test_negative_price_is_rejected(self):
         response = self.client.post(

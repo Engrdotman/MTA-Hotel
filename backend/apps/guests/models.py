@@ -17,6 +17,7 @@ class Guest(TimeStampedModel):
     emergency_contact_name = models.CharField(max_length=150, blank=True)
     emergency_contact_phone = models.CharField(max_length=30, blank=True)
     notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["last_name", "first_name"]
@@ -27,7 +28,17 @@ class Guest(TimeStampedModel):
             models.Index(fields=["phone"], name="guest_phone_idx"),
             models.Index(fields=["email"], name="guest_email_idx"),
             models.Index(fields=["id_number"], name="guest_id_number_idx"),
+            models.Index(fields=["is_active"], name="guest_is_active_idx"),
         ]
 
     def __str__(self):
         return f"{self.guest_code} - {self.first_name} {self.last_name}"
+
+    def has_historical_records(self):
+        related_history = (
+            self.primary_reservations,
+            self.reservation_links,
+            self.stays,
+            self.invoices,
+        )
+        return any(relation.exists() for relation in related_history)

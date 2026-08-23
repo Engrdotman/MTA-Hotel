@@ -234,6 +234,20 @@
   color: var(--color-charcoal);
 }
 
+.reservation-status-pill {
+  width: max-content;
+  min-height: 32px;
+  display: inline-flex !important;
+  align-items: center;
+  border: 1px solid rgba(106, 27, 154, 0.16);
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  color: var(--color-primary) !important;
+  background: var(--color-lavender);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .reservation-actions {
   display: inline-flex;
   gap: 6px;

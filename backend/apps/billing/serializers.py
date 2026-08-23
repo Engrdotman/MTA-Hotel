@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.billing.models import Invoice, InvoiceItem
+from apps.billing.models import Invoice, InvoiceItem, StayCharge
 from apps.payments.models import Payment
 
 
@@ -27,6 +27,53 @@ class PaymentSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "payment_reference", "created_at")
 
 
+class StayChargeSerializer(serializers.ModelSerializer):
+    charge_type_display = serializers.CharField(source="get_charge_type_display", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    guest_name = serializers.SerializerMethodField()
+    room_number = serializers.CharField(source="stay.room.room_number", read_only=True)
+    invoice_number = serializers.CharField(source="invoice.invoice_number", read_only=True)
+
+    class Meta:
+        model = StayCharge
+        fields = (
+            "id",
+            "stay",
+            "guest_name",
+            "room_number",
+            "invoice",
+            "invoice_number",
+            "charge_type",
+            "charge_type_display",
+            "description",
+            "quantity",
+            "unit_price",
+            "amount",
+            "service_date",
+            "status",
+            "status_display",
+            "created_at",
+        )
+        read_only_fields = ("id", "amount", "invoice", "invoice_number", "status", "status_display", "created_at")
+
+    def get_guest_name(self, obj):
+        return f"{obj.stay.guest.first_name} {obj.stay.guest.last_name}".strip()
+
+    def validate_stay(self, stay):
+        existing_invoice = Invoice.objects.filter(stay=stay).exclude(status=Invoice.Status.VOID).first()
+        if existing_invoice:
+            raise serializers.ValidationError(f"Invoice already exists for this stay: {existing_invoice.invoice_number}")
+        return stay
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if "quantity" in attrs and attrs["quantity"] <= 0:
+            raise serializers.ValidationError({"quantity": "Quantity must be greater than 0."})
+        if "unit_price" in attrs and attrs["unit_price"] < 0:
+            raise serializers.ValidationError({"unit_price": "Unit price cannot be negative."})
+        return attrs
+
+
 class InvoiceListSerializer(serializers.ModelSerializer):
     """Serializer for invoice list view."""
     
@@ -43,6 +90,8 @@ class InvoiceListSerializer(serializers.ModelSerializer):
             "reservation_number",
             "status",
             "status_display",
+            "subtotal",
+            "discount",
             "total",
             "amount_paid",
             "balance",
@@ -69,6 +118,7 @@ class InvoiceDetailSerializer(serializers.ModelSerializer):
     
     items = InvoiceItemSerializer(many=True, read_only=True)
     payments = PaymentSerializer(many=True, read_only=True)
+    stay_charges = StayChargeSerializer(many=True, read_only=True)
     
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     created_by_email = serializers.CharField(source="created_by.email", read_only=True)
@@ -99,6 +149,7 @@ class InvoiceDetailSerializer(serializers.ModelSerializer):
             "notes",
             "items",
             "payments",
+            "stay_charges",
             "created_by_email",
             "created_at",
             "updated_at",
@@ -139,5 +190,3 @@ class RecordPaymentSerializer(serializers.Serializer):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than 0")
         return value
-
-

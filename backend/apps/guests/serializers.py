@@ -28,6 +28,7 @@ class GuestSerializer(serializers.ModelSerializer):
             "emergency_contact_name",
             "emergency_contact_phone",
             "notes",
+            "is_active",
             "created_at",
             "updated_at",
         ]

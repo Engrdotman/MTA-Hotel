@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 
 from apps.accounts.models import Role
-from apps.billing.models import Invoice, InvoiceItem
+from apps.billing.models import Invoice, InvoiceItem, StayCharge
 from apps.billing.services import InvoiceService, PaymentService
 from apps.guests.models import Guest
 from apps.payments.models import Payment
@@ -179,6 +179,31 @@ class InvoiceServiceTestCase(TestCase):
         self.assertEqual(item.quantity, Decimal("3"))
         self.assertEqual(item.unit_price, Decimal("40000.00"))
         self.assertEqual(item.amount, Decimal("120000.00"))
+
+    def test_create_invoice_includes_pending_stay_charges(self):
+        """Pending stay charges are added to the invoice and marked invoiced."""
+        charge = StayCharge.objects.create(
+            stay=self.stay,
+            charge_type=StayCharge.ChargeType.LAUNDRY,
+            description="Laundry service",
+            quantity=Decimal("2"),
+            unit_price=Decimal("2500.00"),
+            service_date=self.check_in,
+            created_by=self.user,
+        )
+
+        invoice = InvoiceService.create_invoice_for_stay(
+            stay=self.stay,
+            created_by=self.user,
+        )
+
+        charge.refresh_from_db()
+        self.assertEqual(invoice.subtotal, Decimal("125000.00"))
+        self.assertEqual(invoice.total, Decimal("125000.00"))
+        self.assertEqual(invoice.items.count(), 2)
+        self.assertTrue(invoice.items.filter(description="Laundry service", amount=Decimal("5000.00")).exists())
+        self.assertEqual(charge.status, StayCharge.Status.INVOICED)
+        self.assertEqual(charge.invoice, invoice)
 
 
 class PaymentServiceTestCase(TestCase):
@@ -417,6 +442,45 @@ class InvoiceAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.admin_user)
         response = self.client.post("/api/billing/invoices/", {"stay_id": self.stay.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_add_charge_and_create_invoice_from_api(self):
+        """Test that API-created charges flow into generated invoices."""
+        self.client.force_authenticate(user=self.admin_user)
+        charge_response = self.client.post(
+            "/api/billing/charges/",
+            {
+                "stay": self.stay.id,
+                "charge_type": StayCharge.ChargeType.FOOD,
+                "description": "Restaurant order",
+                "quantity": "1.00",
+                "unit_price": "7500.00",
+                "service_date": self.check_in.isoformat(),
+            },
+        )
+        self.assertEqual(charge_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Decimal(charge_response.data["amount"]), Decimal("7500.00"))
+
+        invoice_response = self.client.post("/api/billing/invoices/", {"stay_id": self.stay.id})
+        self.assertEqual(invoice_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Decimal(invoice_response.data["subtotal"]), Decimal("127500.00"))
+        self.assertEqual(len(invoice_response.data["stay_charges"]), 1)
+
+    def test_cannot_add_charge_after_invoice_exists(self):
+        """Charges cannot be added to a stay once an active invoice exists."""
+        self.client.force_authenticate(user=self.admin_user)
+        InvoiceService.create_invoice_for_stay(stay=self.stay, created_by=self.admin_user)
+        response = self.client.post(
+            "/api/billing/charges/",
+            {
+                "stay": self.stay.id,
+                "charge_type": StayCharge.ChargeType.OTHER,
+                "description": "Late fee",
+                "quantity": "1.00",
+                "unit_price": "1000.00",
+                "service_date": self.check_in.isoformat(),
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_invoice_staff_denied(self):
         """Test that staff cannot create invoice."""

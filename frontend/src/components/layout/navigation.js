@@ -27,15 +27,15 @@ export const navigationSections = [
     items: [
       { label: "Guests", path: "/guests", icon: Users, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.RECEPTIONIST, ROLES.ACCOUNTANT, ROLES.STAFF] },
       { label: "Rooms", path: "/rooms", icon: BedDouble, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.RECEPTIONIST, ROLES.STAFF] },
-      { label: "Reservations", path: "/reservations", icon: CalendarDays, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.RECEPTIONIST, ROLES.ACCOUNTANT] },
+      { label: "Bookings / Reservations", path: "/reservations", icon: CalendarDays, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.RECEPTIONIST, ROLES.ACCOUNTANT] },
       { label: "Check-in / Check-out", path: "/check-in", icon: DoorOpen, roles: OPERATIONS_ROLES },
     ],
   },
   {
     label: "Finance",
     items: [
-      { label: "Billing", path: "/billing", icon: ReceiptText, roles: [ROLES.ADMIN, ROLES.ACCOUNTANT] },
-      { label: "Payments", path: "/payments", icon: CreditCard, roles: [ROLES.ADMIN, ROLES.ACCOUNTANT] },
+      { label: "Billing", path: "/billing", icon: ReceiptText, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST] },
+      { label: "Payments", path: "/payments", icon: CreditCard, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST] },
     ],
   },
   {

@@ -65,7 +65,13 @@ class ReservationApiTests(APITestCase):
             role=role,
         )
         self.client.force_authenticate(user=self.user)
-        self.room_type = RoomType.objects.create(name="Standard", capacity=2, base_price="25000.00")
+        self.room_type = RoomType.objects.create(
+            name="Standard",
+            capacity=2,
+            max_adults=2,
+            max_children=2,
+            base_price="25000.00",
+        )
         self.room = Room.objects.create(room_number="101", room_type=self.room_type)
         self.second_room = Room.objects.create(room_number="102", room_type=self.room_type)
         self.guest = Guest.objects.create(
@@ -124,6 +130,38 @@ class ReservationApiTests(APITestCase):
         self.assertEqual(response.data["nights"], 3)
         self.assertEqual(len(response.data["additional_guests"]), 1)
 
+    def test_create_reservation_allows_valid_occupancy(self):
+        response = self.client.post(
+            reverse("reservation-list"),
+            self.reservation_payload(adults=1, children=1),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["adults"], 1)
+        self.assertEqual(response.data["children"], 1)
+
+    def test_create_reservation_rejects_occupancy_over_total_capacity(self):
+        response = self.client.post(
+            reverse("reservation-list"),
+            self.reservation_payload(adults=2, children=1),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("room", response.data)
+        self.assertEqual(response.data["room"][0], "This room allows a maximum occupancy of 2 guest(s).")
+
+    def test_create_reservation_rejects_occupancy_over_adult_limit(self):
+        response = self.client.post(
+            reverse("reservation-list"),
+            self.reservation_payload(adults=3, children=0),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("adults", response.data)
+
     def test_next_reservation_number_uses_padded_sequence(self):
         self.create_reservation(reservation_number="RSV-000009")
 
@@ -158,6 +196,28 @@ class ReservationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("room", response.data)
 
+    def test_update_reservation_to_overlapping_dates_is_rejected(self):
+        self.create_reservation(check_in_date="2026-08-20", check_out_date="2026-08-23")
+        reservation = self.create_reservation(
+            room=self.second_room.id,
+            check_in_date="2026-08-24",
+            check_out_date="2026-08-26",
+            reservation_number="RSV-000002",
+        )
+
+        response = self.client.patch(
+            reverse("reservation-detail", kwargs={"pk": reservation.pk}),
+            {
+                "room": self.room.id,
+                "check_in_date": "2026-08-22",
+                "check_out_date": "2026-08-25",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("room", response.data)
+
     def test_cancelled_reservation_does_not_block_room_overlap(self):
         self.create_reservation(status=Reservation.Status.CANCELLED)
 
@@ -181,6 +241,18 @@ class ReservationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["room_number"], "102")
         self.assertEqual(response.data["children"], 1)
+
+    def test_update_reservation_rejects_occupancy_over_limit(self):
+        reservation = self.create_reservation(adults=1, children=0)
+
+        response = self.client.patch(
+            reverse("reservation-detail", kwargs={"pk": reservation.pk}),
+            {"adults": 2, "children": 1},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("room", response.data)
 
     def test_moving_reservation_releases_old_room(self):
         reservation = self.create_reservation(status=Reservation.Status.CONFIRMED)

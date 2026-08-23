@@ -17,8 +17,8 @@ export function RecentReservations({ reservations }) {
     <section className="dashboard-card reservations-card">
       <div className="card-heading card-heading-row">
         <div>
-          <h2>Recent Reservations</h2>
-          <p>Latest reservations from the booking desk.</p>
+          <h2>Recent Bookings</h2>
+          <p>Latest bookings from the front desk.</p>
         </div>
       </div>
 

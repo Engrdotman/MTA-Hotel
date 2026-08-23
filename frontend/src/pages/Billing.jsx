@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import useBilling from '../features/billing/hooks/useBilling';
 import { InvoiceStatusBadge } from '../features/billing/components/InvoiceStatusBadge';
 import { formatCurrency, formatDate } from '../features/billing/billingUtils';
@@ -7,9 +6,11 @@ import '../styles/billing.css';
 
 export const Billing = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showChargeForm, setShowChargeForm] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [notice, setNotice] = useState('');
   const {
     invoices,
     invoice,
@@ -18,6 +19,7 @@ export const Billing = () => {
     fetchInvoices,
     fetchInvoice,
     createInvoice,
+    createCharge,
     issueInvoice,
     voidInvoice,
     recordPayment,
@@ -52,9 +54,31 @@ export const Billing = () => {
     try {
       await createInvoice({ stay_id: parseInt(stayId), discount: parseFloat(discount) });
       setShowCreateForm(false);
+      setNotice('Invoice generated with room charges and any pending stay charges.');
       loadInvoices();
     } catch (err) {
       console.error('Failed to create invoice:', err);
+    }
+  };
+
+  const handleAddCharge = async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+
+    try {
+      await createCharge({
+        stay: parseInt(form.stay_id.value),
+        charge_type: form.charge_type.value,
+        description: form.description.value.trim(),
+        quantity: parseFloat(form.quantity.value),
+        unit_price: parseFloat(form.unit_price.value),
+        service_date: form.service_date.value,
+      });
+      form.reset();
+      setShowChargeForm(false);
+      setNotice('Charge added. It will be included when you generate the invoice for this stay.');
+    } catch (err) {
+      console.error('Failed to add charge:', err);
     }
   };
 
@@ -93,6 +117,61 @@ export const Billing = () => {
       </div>
 
       {error && <div className="error-banner">{error}</div>}
+      {notice && <div className="success-banner">{notice}</div>}
+
+      <div className="billing-flow-actions">
+        <button
+          className="btn-outline"
+          onClick={() => setShowChargeForm(!showChargeForm)}
+          type="button"
+        >
+          {showChargeForm ? 'Cancel Charge' : 'Add Stay Charge'}
+        </button>
+      </div>
+
+      {showChargeForm && (
+        <div className="create-invoice-form">
+          <h3>Add Stay Charge</h3>
+          <form onSubmit={handleAddCharge}>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Stay ID</label>
+                <input type="number" name="stay_id" required />
+              </div>
+              <div className="form-group">
+                <label>Charge Type</label>
+                <select name="charge_type" defaultValue="SERVICE">
+                  <option value="SERVICE">Service</option>
+                  <option value="FOOD">Food</option>
+                  <option value="LAUNDRY">Laundry</option>
+                  <option value="DAMAGE">Damage</option>
+                  <option value="LATE_CHECKOUT">Late checkout</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Quantity</label>
+                <input type="number" name="quantity" min="0.01" step="0.01" defaultValue="1" required />
+              </div>
+              <div className="form-group">
+                <label>Unit Price</label>
+                <input type="number" name="unit_price" min="0" step="0.01" required />
+              </div>
+              <div className="form-group">
+                <label>Service Date</label>
+                <input type="date" name="service_date" defaultValue={new Date().toISOString().split('T')[0]} required />
+              </div>
+              <div className="form-group form-group-wide">
+                <label>Description</label>
+                <input type="text" name="description" placeholder="Laundry, restaurant order, damages, late checkout..." required />
+              </div>
+            </div>
+            <button type="submit" className="btn-primary">
+              Save Charge
+            </button>
+          </form>
+        </div>
+      )}
 
       {showCreateForm && (
         <div className="create-invoice-form">
@@ -101,10 +180,12 @@ export const Billing = () => {
             <div className="form-group">
               <label>Stay ID</label>
               <input type="number" name="stay_id" required />
+              <small>Use the checked-in stay ID. Pending charges for this stay will be included automatically.</small>
             </div>
             <div className="form-group">
               <label>Discount (Optional)</label>
-              <input type="number" name="discount" step="0.01" />
+              <input type="number" name="discount" min="0" placeholder="0.00" step="0.01" />
+              <small>Apply an invoice-level discount in NGN before issuing the invoice.</small>
             </div>
             <button type="submit" className="btn-primary">
               Create Invoice
@@ -148,6 +229,7 @@ export const Billing = () => {
                     <th>Guest</th>
                     <th>Issued Date</th>
                     <th>Total</th>
+                    <th>Discount</th>
                     <th>Paid</th>
                     <th>Balance</th>
                     <th>Status</th>
@@ -161,6 +243,7 @@ export const Billing = () => {
                       <td>{inv.guest_name}</td>
                       <td>{formatDate(inv.issued_at)}</td>
                       <td>{formatCurrency(inv.total)}</td>
+                      <td>{formatCurrency(inv.discount)}</td>
                       <td>{formatCurrency(inv.amount_paid)}</td>
                       <td>{formatCurrency(inv.balance)}</td>
                       <td>
@@ -240,6 +323,10 @@ export const Billing = () => {
                     <label>Reservation</label>
                     <p>{invoice.reservation_number}</p>
                   </div>
+                  <div>
+                    <label>Stay Charges</label>
+                    <p>{invoice.stay_charges?.length || 0} included</p>
+                  </div>
                 </div>
               </section>
 
@@ -275,12 +362,10 @@ export const Billing = () => {
                     <span>Subtotal:</span>
                     <span>{formatCurrency(invoice.subtotal)}</span>
                   </div>
-                  {invoice.discount > 0 && (
-                    <div className="total-row discount">
-                      <span>Discount:</span>
-                      <span>-{formatCurrency(invoice.discount)}</span>
-                    </div>
-                  )}
+                  <div className="total-row discount">
+                    <span>Discount:</span>
+                    <span>-{formatCurrency(invoice.discount)}</span>
+                  </div>
                   {invoice.tax > 0 && (
                     <div className="total-row tax">
                       <span>Tax:</span>

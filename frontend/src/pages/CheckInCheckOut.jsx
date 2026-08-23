@@ -83,6 +83,7 @@ export const CheckInCheckOut = () => {
           <table>
             <thead>
               <tr>
+                <th>Stay ID</th>
                 <th>Guest</th>
                 <th>Room</th>
                 <th>Check-in</th>
@@ -94,6 +95,7 @@ export const CheckInCheckOut = () => {
             <tbody>
               {stays.map((stay) => (
                 <tr key={stay.id}>
+                  <td>{stay.id}</td>
                   <td>{stay.guest_name || 'N/A'}</td>
                   <td>{stay.room_number || 'N/A'}</td>
                   <td>{new Date(stay.actual_check_in).toLocaleDateString()}</td>

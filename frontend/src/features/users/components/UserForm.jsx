@@ -63,14 +63,17 @@ export function UserForm({ error, isSubmitting, onClose, onSubmit, user }) {
   }
 
   return (
-    <div className="room-modal-backdrop" role="presentation">
-      <form className="room-modal user-form" onSubmit={handleSubmit}>
-        <button aria-label="Close user form" className="room-modal-close" onClick={onClose} type="button">
-          <X aria-hidden="true" size={18} />
-        </button>
-        <div>
-          <p className="dashboard-kicker">User Management</p>
-          <h3>{isEditing ? "Edit User" : "Add User"}</h3>
+    <div aria-modal="true" className="room-modal" role="dialog">
+      <button aria-label="Close user form" className="room-modal-backdrop" onClick={onClose} type="button" />
+      <form className="room-panel user-form" onSubmit={handleSubmit}>
+        <div className="room-modal-heading">
+          <div>
+            <p className="dashboard-kicker">User Management</p>
+            <h2>{isEditing ? "Edit User" : "Add User"}</h2>
+          </div>
+          <button aria-label="Close user form" onClick={onClose} type="button">
+            <X aria-hidden="true" size={20} />
+          </button>
         </div>
 
         {error ? <div className="dashboard-error">{getApiErrorMessage(error)}</div> : null}

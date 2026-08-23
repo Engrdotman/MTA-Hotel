@@ -7,6 +7,7 @@ import {
   getTodayForAPI,
   getOccupancyColor,
   canAccessFinancialReports,
+  canAccessOperationalReports,
 } from '../features/reports/reportUtils';
 import '../styles/reports.css';
 
@@ -33,14 +34,18 @@ export const Reports = () => {
 
   // Load initial data
   useEffect(() => {
-    loadAllReports();
-  }, []);
+    if (user?.role) {
+      loadAllReports();
+    }
+  }, [user?.role]);
 
   const loadAllReports = async () => {
     try {
       await fetchDashboard();
-      await fetchOccupancy();
-      await fetchReservations();
+      if (canAccessOperationalReports(user?.role)) {
+        await fetchOccupancy();
+        await fetchReservations();
+      }
       if (canAccessFinancialReports(user?.role)) {
         try {
           await fetchRevenue();
@@ -64,8 +69,8 @@ export const Reports = () => {
     try {
       const params = { start_date: startDate, end_date: endDate };
       await Promise.all([
-        fetchOccupancy(params),
-        fetchReservations(params),
+        canAccessOperationalReports(user?.role) && fetchOccupancy(params),
+        canAccessOperationalReports(user?.role) && fetchReservations(params),
         canAccessFinancialReports(user?.role) && fetchRevenue(params),
         canAccessFinancialReports(user?.role) && fetchOutstanding(params),
       ].filter(Boolean));
@@ -184,7 +189,7 @@ export const Reports = () => {
       {/* Reports Grid */}
       <div className="reports-grid">
         {/* Occupancy Report */}
-        {occupancy && (
+        {canAccessOperationalReports(user?.role) && occupancy && (
           <div className="report-card">
             <h3>Occupancy Report</h3>
             <div className="occupancy-gauge">
@@ -218,10 +223,10 @@ export const Reports = () => {
           </div>
         )}
 
-        {/* Reservations Report */}
-        {reservations && (
+        {/* Bookings / Reservations Report */}
+        {canAccessOperationalReports(user?.role) && reservations && (
           <div className="report-card">
-            <h3>Reservations Report</h3>
+            <h3>Bookings / Reservations</h3>
             <div className="report-details">
               <div className="detail-row highlight">
                 <span>Total:</span>

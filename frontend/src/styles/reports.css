@@ -363,3 +363,87 @@
   }
 }
 
+.reports-container {
+  background: transparent;
+  color: var(--color-charcoal);
+}
+
+.reports-header h1,
+.report-card h3,
+.card-value,
+.detail-value {
+  color: var(--color-charcoal);
+}
+
+.reports-header p,
+.form-group label,
+.card-label,
+.detail-label,
+.empty-state {
+  color: var(--color-muted);
+}
+
+.date-filter,
+.card,
+.report-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  box-shadow: 0 14px 34px rgba(77, 56, 18, 0.07);
+}
+
+.date-input {
+  border-color: var(--color-border);
+  color: var(--color-charcoal);
+}
+
+.date-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(201, 162, 75, 0.16);
+}
+
+.card {
+  border-left-color: var(--color-primary);
+}
+
+.card.revenue {
+  border-left-color: var(--color-success);
+}
+
+.progress-bar {
+  background: var(--color-gray);
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
+}
+
+.detail-row,
+.report-card h3 {
+  border-color: rgba(44, 42, 38, 0.1);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary-soft), var(--color-primary));
+  color: var(--color-charcoal);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary);
+}
+
+.btn-secondary {
+  background: var(--color-charcoal);
+}
+
+.btn-secondary:hover {
+  background: #1f1d1a;
+}
+
+.btn-link {
+  color: var(--color-primary-dark);
+}
+
+.btn-link:hover {
+  color: var(--color-charcoal);
+}
+

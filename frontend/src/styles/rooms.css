@@ -497,9 +497,13 @@
 
 .room-type-form {
   display: grid;
-  grid-template-columns: minmax(140px, 1.2fr) minmax(100px, 0.7fr) minmax(120px, 0.8fr) minmax(160px, 1.4fr) auto;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   align-items: end;
   gap: var(--space-3);
+}
+
+.room-type-form button {
+  min-width: 132px;
 }
 
 .room-type-list {

@@ -2,12 +2,13 @@ import { createElement } from "react";
 import { Building2, CalendarCheck, ConciergeBell } from "lucide-react";
 
 import { BrandLogo } from "../components/common/BrandLogo.jsx";
+import hotelEntrance from "../assets/hotel-entrance.jpeg";
 import { brand } from "../constants/brand.js";
 import { LoginForm } from "../features/auth/components/LoginForm.jsx";
 
 const staffAreas = [
   { icon: ConciergeBell, label: "Front desk" },
-  { icon: CalendarCheck, label: "Reservations" },
+  { icon: CalendarCheck, label: "Bookings" },
   { icon: Building2, label: "Guest stays" },
 ];
 
@@ -15,17 +16,14 @@ export function Login() {
   return (
     <main className="login-page">
       <section className="login-visual" aria-label="M.T.A Hotel staff portal">
+        <img className="login-visual-image" src={hotelEntrance} alt="" aria-hidden="true" />
         <div className="visual-content">
           <BrandLogo className="visual-logo" showText={false} />
           <div className="visual-copy">
-            <p className="brand-kicker">{brand.hospitalityTagline}</p>
-            <h1>{brand.hotelName}</h1>
+            <p className="brand-kicker">Internal staff portal</p>
+            <h1>{brand.shortName}</h1>
+            <p className="visual-system-name">Hotel Management System</p>
             <p>{brand.tagline}</p>
-          </div>
-          <div className="visual-desk" aria-hidden="true">
-            <span />
-            <span />
-            <span />
           </div>
           <ul className="staff-areas" aria-label="Staff workspace areas">
             {staffAreas.map(({ icon, label }) => (
@@ -40,10 +38,14 @@ export function Login() {
 
       <section className="login-panel" aria-label="Staff sign in">
         <div className="login-card">
-          <BrandLogo compact />
+          <div className="login-card-brand">
+            <BrandLogo compact showText={false} />
+            <strong>{brand.shortName}</strong>
+            <span>Hotel Management System</span>
+          </div>
           <div className="login-heading">
-            <h2>Staff Sign In</h2>
-            <p>Access reservations, rooms, guests, billing, and reports.</p>
+            <h2>Welcome Back</h2>
+            <p>Sign in to access the M.T.A Hotel Management System.</p>
           </div>
           <LoginForm />
           <footer>{brand.copyright}</footer>

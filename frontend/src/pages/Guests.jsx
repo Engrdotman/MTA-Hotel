@@ -8,7 +8,7 @@ import { GuestForm } from "../features/guests/components/GuestForm.jsx";
 import { GuestSearch } from "../features/guests/components/GuestSearch.jsx";
 import { GuestTable } from "../features/guests/components/GuestTable.jsx";
 import { useGuests } from "../features/guests/hooks/useGuests.js";
-import { createGuest, deleteGuest, updateGuest } from "../features/guests/services/guestService.js";
+import { createGuest, deactivateGuest, updateGuest } from "../features/guests/services/guestService.js";
 import { getApiErrorMessage } from "../features/guests/guestUtils.js";
 import "../styles/guests.css";
 
@@ -23,7 +23,7 @@ export function Guests() {
   const [formError, setFormError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState(null);
-  const [deleteGuestTarget, setDeleteGuestTarget] = useState(null);
+  const [archiveGuestTarget, setArchiveGuestTarget] = useState(null);
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [notice, setNotice] = useState("");
@@ -79,7 +79,7 @@ export function Guests() {
   }
 
   async function handleDelete() {
-    if (!deleteGuestTarget) {
+    if (!archiveGuestTarget) {
       return;
     }
 
@@ -87,9 +87,9 @@ export function Guests() {
     setDeleteError("");
 
     try {
-      await deleteGuest(deleteGuestTarget.id);
-      setDeleteGuestTarget(null);
-      setNotice("Guest removed successfully.");
+      await deactivateGuest(archiveGuestTarget.id);
+      setArchiveGuestTarget(null);
+      setNotice("Guest archived successfully.");
       await retry();
     } catch (requestError) {
       setDeleteError(getApiErrorMessage(requestError));
@@ -145,7 +145,7 @@ export function Guests() {
           <GuestTable
             guests={guests}
             isFiltered={isFiltered}
-            onDelete={setDeleteGuestTarget}
+            onDelete={setArchiveGuestTarget}
             onEdit={openEditForm}
             onView={setSelectedGuest}
           />
@@ -179,9 +179,9 @@ export function Guests() {
       <GuestDetails guest={selectedGuest} onClose={() => setSelectedGuest(null)} />
       <GuestDeleteDialog
         error={deleteError}
-        guest={deleteGuestTarget}
+        guest={archiveGuestTarget}
         isDeleting={isDeleting}
-        onCancel={() => setDeleteGuestTarget(null)}
+        onCancel={() => setArchiveGuestTarget(null)}
         onConfirm={handleDelete}
       />
     </main>

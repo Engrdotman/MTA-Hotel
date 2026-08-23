@@ -8,6 +8,8 @@ class RoomType(TimeStampedModel):
     name = models.CharField(max_length=80, unique=True)
     description = models.TextField(blank=True)
     capacity = models.PositiveSmallIntegerField()
+    max_adults = models.PositiveSmallIntegerField(default=1)
+    max_children = models.PositiveSmallIntegerField(default=0)
     base_price = models.DecimalField(max_digits=12, decimal_places=2)
 
     class Meta:
@@ -15,6 +17,8 @@ class RoomType(TimeStampedModel):
         constraints = [
             models.UniqueConstraint(fields=["name"], name="unique_room_type_name"),
             models.CheckConstraint(condition=Q(capacity__gt=0), name="room_type_capacity_gt_0"),
+            models.CheckConstraint(condition=Q(max_adults__gt=0), name="room_type_max_adults_gt_0"),
+            models.CheckConstraint(condition=Q(max_children__gte=0), name="room_type_max_children_gte_0"),
             models.CheckConstraint(condition=Q(base_price__gte=0), name="room_type_base_price_gte_0"),
         ]
 

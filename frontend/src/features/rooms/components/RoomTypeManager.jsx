@@ -9,7 +9,7 @@ import {
   updateRoomType,
 } from "../services/roomService.js";
 
-const emptyType = { name: "", description: "", capacity: 1, base_price: "0.00" };
+const emptyType = { name: "", description: "", capacity: 1, max_adults: 1, max_children: 0, base_price: "0.00" };
 
 export function RoomTypeManager({ isOpen, onClose, onChanged }) {
   const [roomTypes, setRoomTypes] = useState([]);
@@ -47,6 +47,8 @@ export function RoomTypeManager({ isOpen, onClose, onChanged }) {
       name: type.name,
       description: type.description || "",
       capacity: type.capacity,
+      max_adults: type.max_adults,
+      max_children: type.max_children,
       base_price: type.base_price,
     });
     setFieldErrors({});
@@ -109,7 +111,9 @@ export function RoomTypeManager({ isOpen, onClose, onChanged }) {
 
         <form className="room-type-form" onSubmit={handleSubmit}>
           <RoomTypeField error={fieldErrors.name} label="Name *" name="name" onChange={setValues} values={values} />
-          <RoomTypeField error={fieldErrors.capacity} label="Capacity *" name="capacity" onChange={setValues} type="number" values={values} />
+          <RoomTypeField error={fieldErrors.capacity} label="Total Max *" name="capacity" onChange={setValues} type="number" values={values} />
+          <RoomTypeField error={fieldErrors.max_adults} label="Max Adults *" name="max_adults" onChange={setValues} type="number" values={values} />
+          <RoomTypeField error={fieldErrors.max_children} label="Max Children *" name="max_children" onChange={setValues} type="number" values={values} />
           <RoomTypeField error={fieldErrors.base_price} label="Base Price *" name="base_price" onChange={setValues} type="number" values={values} />
           <RoomTypeField label="Description" name="description" onChange={setValues} values={values} />
           <button disabled={isSubmitting} type="submit">
@@ -127,7 +131,7 @@ export function RoomTypeManager({ isOpen, onClose, onChanged }) {
                 <div>
                   <strong>{type.name}</strong>
                   <span>
-                    Capacity {type.capacity} / {formatCurrency(type.base_price)} / {type.room_count || 0} rooms
+                    Max {type.capacity} total, {type.max_adults} adult(s), {type.max_children} child(ren) / {formatCurrency(type.base_price)} / {type.room_count || 0} rooms
                   </span>
                 </div>
                 <div>
@@ -148,16 +152,19 @@ export function RoomTypeManager({ isOpen, onClose, onChanged }) {
 }
 
 function RoomTypeField({ error, label, name, onChange, type = "text", values }) {
+  const min = name === "max_children" ? 0 : type === "number" ? 1 : undefined;
+
   return (
     <label className="room-field">
       <span>{label}</span>
       <input
         aria-invalid={Boolean(error)}
+        min={min}
         name={name}
         onChange={(event) => onChange((current) => ({ ...current, [name]: event.target.value }))}
         step={name === "base_price" ? "0.01" : undefined}
         type={type}
-        value={values[name] || ""}
+        value={values[name] ?? ""}
       />
       {error ? <small>{Array.isArray(error) ? error[0] : error}</small> : null}
     </label>

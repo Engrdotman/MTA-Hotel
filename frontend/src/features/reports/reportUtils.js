@@ -60,9 +60,9 @@ export const getTodayForAPI = () => {
  */
 export const getOccupancyColor = (rate) => {
   const percentage = parseFloat(rate);
-  if (percentage >= 75) return '#4caf50'; // Green
-  if (percentage >= 50) return '#ff9800'; // Orange
-  return '#f44336'; // Red
+  if (percentage >= 75) return '#4f9a5f';
+  if (percentage >= 50) return '#c9a24b';
+  return '#c62828';
 };
 
 /**
@@ -70,14 +70,14 @@ export const getOccupancyColor = (rate) => {
  */
 export const getRoomStatusColor = (status) => {
   const colors = {
-    AVAILABLE: '#4caf50',
-    OCCUPIED: '#ff9800',
-    RESERVED: '#2196f3',
-    DIRTY: '#f44336',
-    MAINTENANCE: '#9c27b0',
-    OUT_OF_SERVICE: '#757575',
+    AVAILABLE: '#4f9a5f',
+    OCCUPIED: '#c9a24b',
+    RESERVED: '#d9bf83',
+    DIRTY: '#c62828',
+    MAINTENANCE: '#b6842d',
+    OUT_OF_SERVICE: '#746a5b',
   };
-  return colors[status] || '#999';
+  return colors[status] || '#746a5b';
 };
 
 /**

@@ -20,6 +20,11 @@ export async function updateGuest(id, data) {
   return response.data;
 }
 
+export async function deactivateGuest(id) {
+  const response = await api.patch(`/guests/${id}/`, { is_active: false });
+  return response.data;
+}
+
 export async function deleteGuest(id) {
   await api.delete(`/guests/${id}/`);
 }

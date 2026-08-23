@@ -1,6 +1,7 @@
 import { CalendarDays, CheckCircle2, ClipboardList, Eye, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useAuth } from "../features/auth/authContext.js";
 import { useReservations } from "../features/reservations/hooks/useReservations.js";
 import {
   formatDate,
@@ -19,8 +20,10 @@ import {
 import "../styles/reservations.css";
 
 const pageSize = 20;
+const reservationManageRoles = ["ADMIN", "MANAGER", "RECEPTIONIST"];
 
 export function Reservations() {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({ status: "", room: "", guest: "", dateFrom: "", dateTo: "" });
@@ -49,7 +52,14 @@ export function Reservations() {
     [guests],
   );
   const roomOptions = useMemo(
-    () => rooms.map((room) => ({ label: `${room.room_number} - ${room.room_type_name}`, value: String(room.id) })),
+    () =>
+      rooms.map((room) => ({
+        label: `${room.room_number} - ${room.room_type_name}`,
+        value: String(room.id),
+        capacity: room.room_type_capacity,
+        maxAdults: room.room_type_max_adults,
+        maxChildren: room.room_type_max_children,
+      })),
     [rooms],
   );
 
@@ -124,19 +134,22 @@ export function Reservations() {
   const start = count === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, count);
   const isFiltered = Boolean(search || filters.status || filters.room || filters.guest || filters.dateFrom || filters.dateTo);
+  const canManageReservations = reservationManageRoles.includes(user?.role);
 
   return (
     <main className="dashboard-page reservations-page">
       <section className="reservations-header">
         <div>
-          <p className="dashboard-kicker">Reservation Management</p>
-          <h2>Reservations</h2>
+          <p className="dashboard-kicker">Booking / Reservation Management</p>
+          <h2>Bookings / Reservations</h2>
           <p>Create bookings, assign rooms, track guests, and move reservations through their stay lifecycle.</p>
         </div>
-        <button className="reservations-primary-button" onClick={openCreateForm} type="button">
-          <Plus aria-hidden="true" size={18} />
-          New Reservation
-        </button>
+        {canManageReservations ? (
+          <button className="reservations-primary-button" onClick={openCreateForm} type="button">
+            <Plus aria-hidden="true" size={18} />
+            New Booking
+          </button>
+        ) : null}
       </section>
 
       <section className="reservations-stats" aria-label="Reservation status summary">
@@ -156,7 +169,7 @@ export function Reservations() {
         <div className="reservation-toolbar">
           <label className="reservation-search">
             <Search aria-hidden="true" size={18} />
-            <input onChange={handleSearch} placeholder="Search reservation, guest, or room" type="search" value={search} />
+            <input onChange={handleSearch} placeholder="Search booking, guest, or room" type="search" value={search} />
           </label>
           <div className="reservation-filters">
             <label>
@@ -208,7 +221,7 @@ export function Reservations() {
 
         {error ? (
           <div className="reservation-load-state">
-            <p>Unable to load reservations. Please try again.</p>
+            <p>Unable to load bookings. Please try again.</p>
             <button onClick={retry} type="button">
               Retry
             </button>
@@ -222,13 +235,14 @@ export function Reservations() {
             onEdit={openEditForm}
             onStatusChange={handleStatusChange}
             onView={setSelectedReservation}
+            canManageReservations={canManageReservations}
             reservations={reservations}
           />
         )}
 
         <div className="reservations-pagination">
           <p>
-            Showing {start}-{end} of {count} reservations
+            Showing {start}-{end} of {count} bookings
           </p>
           <div>
             <button disabled={!hasPrevious || isLoading} onClick={() => setPage((current) => Math.max(1, current - 1))} type="button">
@@ -268,9 +282,9 @@ function ReservationStat({ icon, label, tone = "default", value }) {
   );
 }
 
-function ReservationTable({ isFiltered, onDelete, onEdit, onStatusChange, onView, reservations }) {
+function ReservationTable({ canManageReservations, isFiltered, onDelete, onEdit, onStatusChange, onView, reservations }) {
   if (!reservations.length) {
-    return <div className="reservation-empty">{isFiltered ? "No reservations match these filters." : "No reservations yet."}</div>;
+    return <div className="reservation-empty">{isFiltered ? "No bookings match these filters." : "No bookings yet."}</div>;
   }
 
   return (
@@ -300,17 +314,23 @@ function ReservationTable({ isFiltered, onDelete, onEdit, onStatusChange, onView
                 {formatDate(reservation.check_in_date)} - {formatDate(reservation.check_out_date)}
               </td>
               <td>
-                <select
-                  className={`reservation-status-select reservation-status-${reservation.status.toLowerCase()}`}
-                  onChange={(event) => onStatusChange(reservation, event.target.value)}
-                  value={reservation.status}
-                >
-                  {reservationStatusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {formatReservationLabel(status)}
-                    </option>
-                  ))}
-                </select>
+                {canManageReservations ? (
+                  <select
+                    className={`reservation-status-select reservation-status-${reservation.status.toLowerCase()}`}
+                    onChange={(event) => onStatusChange(reservation, event.target.value)}
+                    value={reservation.status}
+                  >
+                    {reservationStatusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {formatReservationLabel(status)}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className={`reservation-status-pill reservation-status-${reservation.status.toLowerCase()}`}>
+                    {reservation.status_display}
+                  </span>
+                )}
               </td>
               <td>{reservation.source_display}</td>
               <td>
@@ -318,12 +338,16 @@ function ReservationTable({ isFiltered, onDelete, onEdit, onStatusChange, onView
                   <button aria-label={`View ${reservation.reservation_number}`} onClick={() => onView(reservation)} title="View" type="button">
                     <Eye aria-hidden="true" size={16} />
                   </button>
-                  <button aria-label={`Edit ${reservation.reservation_number}`} onClick={() => onEdit(reservation)} title="Edit" type="button">
-                    <Pencil aria-hidden="true" size={16} />
-                  </button>
-                  <button aria-label={`Delete ${reservation.reservation_number}`} onClick={() => onDelete(reservation)} title="Delete" type="button">
-                    <Trash2 aria-hidden="true" size={16} />
-                  </button>
+                  {canManageReservations ? (
+                    <>
+                      <button aria-label={`Edit ${reservation.reservation_number}`} onClick={() => onEdit(reservation)} title="Edit" type="button">
+                        <Pencil aria-hidden="true" size={16} />
+                      </button>
+                      <button aria-label={`Delete ${reservation.reservation_number}`} onClick={() => onDelete(reservation)} title="Delete" type="button">
+                        <Trash2 aria-hidden="true" size={16} />
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </td>
             </tr>
@@ -338,6 +362,7 @@ function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit,
   const [values, setValues] = useState(() => getReservationFormValues(reservation));
   const errors = mapValidationErrors(error);
   const message = error ? getApiErrorMessage(error) : "";
+  const selectedRoom = roomOptions.find((room) => room.value === String(values.room));
 
   useEffect(() => {
     setValues(getReservationFormValues(reservation));
@@ -374,8 +399,8 @@ function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit,
       <form className="reservation-panel" onSubmit={submit}>
         <div className="reservation-modal-heading">
           <div>
-            <p className="dashboard-kicker">{reservation ? "Edit Reservation" : "New Reservation"}</p>
-            <h2>{reservation ? reservation.reservation_number : "Create reservation"}</h2>
+            <p className="dashboard-kicker">{reservation ? "Edit Booking" : "New Booking"}</p>
+            <h2>{reservation ? reservation.reservation_number : "Create booking"}</h2>
           </div>
           <button aria-label="Close" onClick={onClose} type="button">
             <X aria-hidden="true" size={18} />
@@ -404,6 +429,11 @@ function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit,
                 </option>
               ))}
             </select>
+            {selectedRoom ? (
+              <small>
+                Max occupancy: {selectedRoom.capacity} total, {selectedRoom.maxAdults} adult(s), {selectedRoom.maxChildren} child(ren)
+              </small>
+            ) : null}
           </Field>
           <Field error={errors.check_in_date} label="Check-in">
             <input required onChange={(event) => updateValue("check_in_date", event.target.value)} type="date" value={values.check_in_date} />
@@ -468,7 +498,7 @@ function ReservationForm({ error, guestOptions, isSubmitting, onClose, onSubmit,
             Cancel
           </button>
           <button disabled={isSubmitting} type="submit">
-            {isSubmitting ? "Saving..." : "Save Reservation"}
+            {isSubmitting ? "Saving..." : "Save Booking"}
           </button>
         </div>
       </form>
@@ -513,7 +543,7 @@ function ReservationDetails({ onClose, reservation }) {
       <div className="reservation-drawer-panel">
         <div className="reservation-modal-heading">
           <div>
-            <p className="dashboard-kicker">Reservation Details</p>
+            <p className="dashboard-kicker">Booking Details</p>
             <h2>{reservation.reservation_number}</h2>
           </div>
           <button aria-label="Close" onClick={onClose} type="button">
@@ -525,6 +555,7 @@ function ReservationDetails({ onClose, reservation }) {
           <Detail label="Room" value={`${reservation.room_number} - ${reservation.room_type_name}`} />
           <Detail label="Dates" value={`${formatDate(reservation.check_in_date)} - ${formatDate(reservation.check_out_date)}`} />
           <Detail label="Occupancy" value={`${reservation.adults} adult(s), ${reservation.children} child(ren)`} />
+          <Detail label="Room Limit" value={`${reservation.room_type_capacity} total, ${reservation.room_type_max_adults} adult(s), ${reservation.room_type_max_children} child(ren)`} />
           <Detail label="Status" value={reservation.status_display} />
           <Detail label="Source" value={reservation.source_display} />
           <Detail

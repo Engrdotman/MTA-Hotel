@@ -93,3 +93,56 @@ class InvoiceItem(models.Model):
 
     def __str__(self):
         return f"{self.invoice} - {self.description}"
+
+
+class StayCharge(TimeStampedModel):
+    class ChargeType(models.TextChoices):
+        SERVICE = "SERVICE", "Service"
+        FOOD = "FOOD", "Food"
+        LAUNDRY = "LAUNDRY", "Laundry"
+        DAMAGE = "DAMAGE", "Damage"
+        LATE_CHECKOUT = "LATE_CHECKOUT", "Late checkout"
+        OTHER = "OTHER", "Other"
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        INVOICED = "INVOICED", "Invoiced"
+        VOID = "VOID", "Void"
+
+    stay = models.ForeignKey(Stay, on_delete=models.PROTECT, related_name="charges")
+    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, related_name="stay_charges", null=True, blank=True)
+    charge_type = models.CharField(max_length=20, choices=ChargeType.choices, default=ChargeType.SERVICE)
+    description = models.CharField(max_length=255)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, help_text="Price per unit in NGN")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Total amount (quantity x unit_price) in NGN")
+    service_date = models.DateField()
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_stay_charges",
+    )
+
+    class Meta:
+        ordering = ["-service_date", "-created_at"]
+        constraints = [
+            models.CheckConstraint(condition=Q(quantity__gt=0), name="stay_charge_quantity_gt_0"),
+            models.CheckConstraint(condition=Q(unit_price__gte=0), name="stay_charge_unit_price_gte_0"),
+            models.CheckConstraint(condition=Q(amount__gte=0), name="stay_charge_amount_gte_0"),
+        ]
+        indexes = [
+            models.Index(fields=["stay"], name="stay_charge_stay_idx"),
+            models.Index(fields=["invoice"], name="stay_charge_invoice_idx"),
+            models.Index(fields=["status"], name="stay_charge_status_idx"),
+            models.Index(fields=["service_date"], name="stay_charge_service_date_idx"),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.stay} - {self.description}"

@@ -27,6 +27,12 @@ export const billingService = {
   recordPayment: (invoiceId, data) =>
     api.post(`/billing/invoices/${invoiceId}/record_payment/`, data),
 
+  getCharges: (params = {}) =>
+    api.get('/billing/charges/', { params }),
+
+  createCharge: (data) =>
+    api.post('/billing/charges/', data),
+
   // Search and filter
   searchInvoices: (query) =>
     api.get('/billing/invoices/', {

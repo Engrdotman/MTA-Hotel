@@ -1,8 +1,7 @@
 import { useState } from "react";
 
+import logoPath from "../../assets/mTalogo.jpeg";
 import { brand } from "../../constants/brand.js";
-
-const logoPath = "/src/assets/logo/mta-logo.png";
 
 export function BrandLogo({ compact = false, showText = true, className = "" }) {
   const [logoAvailable, setLogoAvailable] = useState(true);

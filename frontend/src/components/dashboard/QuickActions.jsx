@@ -5,7 +5,7 @@ export function QuickActions() {
   const navigate = useNavigate();
 
   const actions = [
-    { label: "New Reservation", icon: Plus, path: "/reservations" },
+    { label: "New Booking", icon: Plus, path: "/reservations" },
     { label: "Add Guest", icon: UserPlus, path: "/guests" },
     { label: "Check-in Guest", icon: LogIn, path: "/check-in" },
     { label: "Record Payment", icon: CreditCard, path: "/billing" },

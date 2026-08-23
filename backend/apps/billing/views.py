@@ -7,18 +7,18 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from apps.billing.models import Invoice, InvoiceItem
+from apps.billing.models import Invoice, StayCharge
 from apps.billing.serializers import (
     InvoiceListSerializer,
     InvoiceDetailSerializer,
     CreateInvoiceSerializer,
     RecordPaymentSerializer,
     PaymentSerializer,
+    StayChargeSerializer,
 )
 from apps.billing.filters import InvoiceFilter
 from apps.billing.permissions import CanAccessBilling, CanManageInvoices, CanRecordPayments
 from apps.billing.services import InvoiceService, PaymentService
-from apps.payments.models import Payment
 from apps.stays.models import Stay
 from rest_framework.permissions import IsAuthenticated
 
@@ -187,3 +187,25 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class StayChargeViewSet(viewsets.ModelViewSet):
+    """ViewSet for charges added during a guest stay before invoicing."""
+
+    serializer_class = StayChargeSerializer
+    permission_classes = (IsAuthenticated, CanAccessBilling)
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    ordering_fields = ("service_date", "created_at", "amount")
+    ordering = ("-service_date", "-created_at")
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = StayCharge.objects.select_related("stay__guest", "stay__room", "invoice", "created_by")
+        stay_id = self.request.query_params.get("stay")
+        status_filter = self.request.query_params.get("status")
+        if stay_id:
+            queryset = queryset.filter(stay_id=stay_id)
+        if status_filter in StayCharge.Status.values:
+            queryset = queryset.filter(status=status_filter)
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)

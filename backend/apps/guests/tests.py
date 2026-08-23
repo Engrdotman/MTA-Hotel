@@ -4,6 +4,8 @@ from rest_framework.test import APITestCase
 
 from apps.accounts.models import Role, User
 from apps.guests.models import Guest
+from apps.reservations.models import Reservation
+from apps.rooms.models import Room, RoomType
 
 
 class GuestApiTests(APITestCase):
@@ -117,6 +119,55 @@ class GuestApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Guest.objects.filter(pk=guest.pk).exists())
+
+    def test_guest_delete_with_historical_records_returns_clear_error(self):
+        guest = self.create_guest()
+        reservation = self.create_reservation(guest)
+
+        response = self.client.delete(reverse("guest-detail", kwargs={"pk": guest.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(response.data["detail"], "This guest cannot be deleted because historical records exist.")
+        self.assertTrue(Guest.objects.filter(pk=guest.pk).exists())
+        self.assertTrue(Reservation.objects.filter(pk=reservation.pk).exists())
+
+    def test_guest_with_historical_records_can_be_deactivated(self):
+        guest = self.create_guest()
+        reservation = self.create_reservation(guest)
+
+        response = self.client.patch(
+            reverse("guest-detail", kwargs={"pk": guest.pk}),
+            {"is_active": False},
+            format="json",
+        )
+        guest.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(guest.is_active)
+        self.assertTrue(Reservation.objects.filter(pk=reservation.pk).exists())
+
+    def test_guest_list_excludes_inactive_guests_by_default(self):
+        self.create_guest(first_name="Active", email="active@example.com", id_number="ACTIVE")
+        self.create_guest(first_name="Archived", email="archived@example.com", id_number="ARCHIVED", is_active=False)
+
+        response = self.client.get(reverse("guest-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["first_name"], "Active")
+
+    def create_reservation(self, guest):
+        room_type = RoomType.objects.create(name="Standard", capacity=2, base_price="25000.00")
+        room = Room.objects.create(room_number="101", room_type=room_type)
+        return Reservation.objects.create(
+            reservation_number="RES-000001",
+            guest=guest,
+            room=room,
+            check_in_date="2026-09-01",
+            check_out_date="2026-09-03",
+            adults=1,
+            created_by=self.user,
+        )
 
     def test_guest_search(self):
         self.create_guest(first_name="Hazzan", email="hazzan@example.com")

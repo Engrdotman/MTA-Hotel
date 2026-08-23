@@ -149,3 +149,68 @@
   color: #999;
   font-size: 0.875rem;
 }
+
+.checkin-container {
+  color: var(--color-charcoal);
+}
+
+.checkin-header h1,
+.stay-info h3,
+.stays-table th {
+  color: var(--color-charcoal);
+}
+
+.checkin-header p,
+.filter-tabs button,
+.text-muted {
+  color: var(--color-muted);
+}
+
+.filter-tabs {
+  border-bottom-color: rgba(44, 42, 38, 0.1);
+}
+
+.filter-tabs button.active {
+  color: var(--color-primary-dark);
+  border-bottom-color: var(--color-primary);
+}
+
+.stays-table {
+  border-color: var(--color-border);
+  box-shadow: 0 14px 34px rgba(77, 56, 18, 0.07);
+}
+
+.stays-table table {
+  background: var(--color-white);
+}
+
+.stays-table thead {
+  background: var(--color-surface);
+  border-bottom-color: rgba(44, 42, 38, 0.1);
+}
+
+.stays-table td {
+  border-bottom-color: rgba(44, 42, 38, 0.08);
+}
+
+.stays-table tbody tr:hover {
+  background: var(--color-surface);
+}
+
+.status.checked_in {
+  background: rgba(79, 154, 95, 0.14);
+  color: var(--color-success);
+}
+
+.status.checked_out {
+  background: rgba(201, 162, 75, 0.18);
+  color: #8a6200;
+}
+
+.btn-small.danger {
+  background: var(--color-charcoal);
+}
+
+.btn-small.danger:hover:not(:disabled) {
+  background: #1f1d1a;
+}

@@ -13,6 +13,8 @@ class RoomTypeSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "capacity",
+            "max_adults",
+            "max_children",
             "base_price",
             "room_count",
             "created_at",
@@ -30,6 +32,30 @@ class RoomTypeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Capacity must be greater than 0.")
         return value
 
+    def validate_max_adults(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Maximum adults must be greater than 0.")
+        return value
+
+    def validate_max_children(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Maximum children cannot be negative.")
+        return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        capacity = attrs.get("capacity", getattr(self.instance, "capacity", None))
+        max_adults = attrs.get("max_adults", getattr(self.instance, "max_adults", None))
+        max_children = attrs.get("max_children", getattr(self.instance, "max_children", None))
+
+        if capacity is not None and max_adults is not None and max_adults > capacity:
+            raise serializers.ValidationError({"max_adults": "Maximum adults cannot exceed total capacity."})
+
+        if capacity is not None and max_children is not None and max_children > capacity:
+            raise serializers.ValidationError({"max_children": "Maximum children cannot exceed total capacity."})
+
+        return attrs
+
     def validate_base_price(self, value):
         if value < 0:
             raise serializers.ValidationError("Base price cannot be negative.")
@@ -39,6 +65,8 @@ class RoomTypeSerializer(serializers.ModelSerializer):
 class RoomSerializer(serializers.ModelSerializer):
     room_type_name = serializers.CharField(source="room_type.name", read_only=True)
     room_type_capacity = serializers.IntegerField(source="room_type.capacity", read_only=True)
+    room_type_max_adults = serializers.IntegerField(source="room_type.max_adults", read_only=True)
+    room_type_max_children = serializers.IntegerField(source="room_type.max_children", read_only=True)
     room_type_base_price = serializers.DecimalField(
         source="room_type.base_price",
         max_digits=12,
@@ -55,6 +83,8 @@ class RoomSerializer(serializers.ModelSerializer):
             "room_type",
             "room_type_name",
             "room_type_capacity",
+            "room_type_max_adults",
+            "room_type_max_children",
             "room_type_base_price",
             "floor",
             "status",
@@ -67,6 +97,8 @@ class RoomSerializer(serializers.ModelSerializer):
             "id",
             "room_type_name",
             "room_type_capacity",
+            "room_type_max_adults",
+            "room_type_max_children",
             "room_type_base_price",
             "status_display",
             "created_at",

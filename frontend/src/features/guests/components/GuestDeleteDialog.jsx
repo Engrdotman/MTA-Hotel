@@ -9,20 +9,20 @@ export function GuestDeleteDialog({ error, guest, isDeleting, onCancel, onConfir
 
   return (
     <div aria-modal="true" className="guest-modal" role="dialog">
-      <button aria-label="Cancel delete" className="guest-modal-backdrop" onClick={onCancel} type="button" />
+      <button aria-label="Cancel archive" className="guest-modal-backdrop" onClick={onCancel} type="button" />
       <div className="guest-delete-panel">
         <div className="guest-delete-icon">
           <AlertTriangle aria-hidden="true" size={24} />
         </div>
-        <h2>Remove guest?</h2>
-        <p>Are you sure you want to remove {getGuestName(guest)}?</p>
+        <h2>Archive guest?</h2>
+        <p>Archive {getGuestName(guest)} without deleting bookings, invoices, payments, or receipts.</p>
         {error ? <p className="guest-form-error">{error}</p> : null}
         <div className="guest-form-actions">
           <button onClick={onCancel} type="button">
             Cancel
           </button>
           <button disabled={isDeleting} onClick={onConfirm} type="button">
-            {isDeleting ? "Removing..." : "Delete"}
+            {isDeleting ? "Archiving..." : "Archive"}
           </button>
         </div>
       </div>

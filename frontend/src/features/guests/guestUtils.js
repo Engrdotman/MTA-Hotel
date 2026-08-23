@@ -68,7 +68,7 @@ export function getApiErrorMessage(error) {
   }
 
   if (error.response.status === 409) {
-    return error.response.data?.detail || "This guest cannot be removed.";
+    return error.response.data?.detail || "This guest cannot be deleted because historical records exist.";
   }
 
   if (error.response.status >= 500) {

@@ -11,6 +11,7 @@ import { CheckInCheckOut } from "./pages/CheckInCheckOut.jsx";
 import { Unauthorized } from "./pages/Unauthorized.jsx";
 import { Users } from "./pages/Users.jsx";
 import { Billing } from "./pages/Billing.jsx";
+import { Payments } from "./pages/Payments.jsx";
 import { Reports } from "./pages/Reports.jsx";
 import { ROLES } from "./features/auth/authorization.js";
 import { ProtectedRoute, PublicRoute } from "./features/auth/ProtectedRoute.jsx";
@@ -77,7 +78,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "/payments",
-        element: <PlaceholderPage title="Payments" />,
+        element: (
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT, ROLES.RECEPTIONIST]}>
+            <Payments />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/reports",

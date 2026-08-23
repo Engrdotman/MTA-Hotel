@@ -3,7 +3,7 @@ from datetime import date, datetime, timezone
 
 from django.db import transaction
 
-from apps.billing.models import Invoice, InvoiceItem
+from apps.billing.models import Invoice, InvoiceItem, StayCharge
 from apps.payments.models import Payment
 from apps.stays.models import Stay
 
@@ -93,8 +93,11 @@ class InvoiceService:
         # Calculate room charges
         nights, room_rate, room_charge = InvoiceService.calculate_room_charges(stay)
         
+        pending_charges = list(stay.charges.filter(status=StayCharge.Status.PENDING).order_by("service_date", "id"))
+        extra_charge_total = sum((charge.amount for charge in pending_charges), Decimal("0"))
+
         # Initialize amounts
-        subtotal = room_charge
+        subtotal = room_charge + extra_charge_total
         discount_amount = Decimal("0")
         
         if discount and discount > 0:
@@ -138,6 +141,23 @@ class InvoiceService:
             amount=room_charge,
             service_date=InvoiceService.as_date(stay.checked_in_at),
         )
+
+        for charge in pending_charges:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                item_type=InvoiceItem.ItemType.SERVICE if charge.charge_type != StayCharge.ChargeType.OTHER else InvoiceItem.ItemType.OTHER,
+                description=charge.description,
+                quantity=charge.quantity,
+                unit_price=charge.unit_price,
+                amount=charge.amount,
+                service_date=charge.service_date,
+            )
+
+        if pending_charges:
+            StayCharge.objects.filter(id__in=[charge.id for charge in pending_charges]).update(
+                invoice=invoice,
+                status=StayCharge.Status.INVOICED,
+            )
         
         return invoice
 

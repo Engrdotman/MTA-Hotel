@@ -1,4 +1,4 @@
-import { ArrowRight, Eye, EyeOff, Mail } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,14 +10,7 @@ const initialValues = {
   email: "",
   password: "",
   remember: false,
-  role: "front_desk",
 };
-
-const roleOptions = [
-  { label: "Front desk", value: "front_desk" },
-  { label: "Manager", value: "manager" },
-  { label: "Admin", value: "admin" },
-];
 
 function validate(values) {
   const errors = {};
@@ -30,8 +23,6 @@ function validate(values) {
 
   if (!values.password) {
     errors.password = "Password is required.";
-  } else if (values.password.length < 8) {
-    errors.password = "Password must be at least 8 characters.";
   }
 
   return errors;
@@ -70,35 +61,19 @@ export function LoginForm() {
     setFormMessage("");
 
     try {
-      // Map UI role selection to actual role names
-      const roleMap = {
-        front_desk: "RECEPTIONIST",
-        manager: "MANAGER",
-        admin: "ADMIN",
-      };
-      const selectedRole = roleMap[values.role];
-
-      // Login and get user data
-      const user = await login({
+      await login({
         email: values.email.trim(),
         password: values.password,
       });
 
-      // Check if user has the selected role
-      if (user.role !== selectedRole) {
-        setFormMessage(`Access denied. You have "${user.role}" role, not "${values.role}". Please use appropriate credentials.`);
-        setIsSubmitting(false);
-        return;
-      }
-
       navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error.response?.status === 401) {
-        setFormMessage("Invalid email or password.");
+        setFormMessage("The email or password is incorrect.");
       } else if (error.response?.status >= 500) {
-        setFormMessage("The server is unavailable right now. Please try again shortly.");
+        setFormMessage("Unable to connect to the server. Please try again.");
       } else {
-        setFormMessage("Unable to sign in. Please check your connection and try again.");
+        setFormMessage("Unable to connect to the server. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -107,30 +82,15 @@ export function LoginForm() {
 
   return (
     <form className="login-form" onSubmit={handleSubmit} noValidate>
-      <fieldset className="role-selector" aria-label="Account type">
-        {roleOptions.map((option) => (
-          <label key={option.value}>
-            <input
-              checked={values.role === option.value}
-              name="role"
-              onChange={updateField}
-              type="radio"
-              value={option.value}
-            />
-            <span>{option.label}</span>
-          </label>
-        ))}
-      </fieldset>
-
       <TextField
         autoComplete="email"
         error={errors.email}
         id="email"
         label="Email Address"
+        leftSlot={<Mail aria-hidden="true" size={18} />}
         name="email"
         onChange={updateField}
         placeholder="Enter your email"
-        rightSlot={<Mail aria-hidden="true" size={18} />}
         type="email"
         value={values.email}
       />
@@ -140,6 +100,7 @@ export function LoginForm() {
         error={errors.password}
         id="password"
         label="Password"
+        leftSlot={<Lock aria-hidden="true" size={18} />}
         name="password"
         onChange={updateField}
         placeholder="Enter your password"

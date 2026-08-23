@@ -38,8 +38,8 @@ export function useReservations({ filters, page, pageSize, search }) {
       const [reservationResponse, summaryResponse, guestResponse, roomResponse] = await Promise.all([
         getReservations(params),
         getReservationSummary(),
-        getGuests({ page_size: 100, ordering: "last_name" }),
-        getRooms({ page_size: 100, ordering: "room_number" }),
+        getGuests({ page_size: 100, ordering: "last_name" }).catch(() => ({ results: [] })),
+        getRooms({ page_size: 100, ordering: "room_number" }).catch(() => ({ results: [] })),
       ]);
       setReservations(reservationResponse);
       setSummary(summaryResponse);

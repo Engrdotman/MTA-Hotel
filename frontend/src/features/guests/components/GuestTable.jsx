@@ -1,4 +1,4 @@
-import { Edit3, Eye, Trash2 } from "lucide-react";
+import { Archive, Edit3, Eye } from "lucide-react";
 
 import { formatDate, getGuestInitials, getGuestName } from "../guestUtils.js";
 
@@ -55,8 +55,8 @@ export function GuestTable({ guests, isFiltered, onDelete, onEdit, onView }) {
                   <button aria-label={`Edit ${getGuestName(guest)}`} onClick={() => onEdit(guest)} type="button">
                     <Edit3 aria-hidden="true" size={16} />
                   </button>
-                  <button aria-label={`Delete ${getGuestName(guest)}`} onClick={() => onDelete(guest)} type="button">
-                    <Trash2 aria-hidden="true" size={16} />
+                  <button aria-label={`Archive ${getGuestName(guest)}`} onClick={() => onDelete(guest)} type="button">
+                    <Archive aria-hidden="true" size={16} />
                   </button>
                 </div>
               </td>
